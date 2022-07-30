@@ -235,7 +235,21 @@
       <option name="project" value="LOCAL" />
       <updated>1659190840113</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="release v0.1">
+      <created>1659190890463</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1659190890463</updated>
+    </task>
+    <task id="LOCAL-00012" summary="release v0.1">
+      <created>1659190972512</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1659190972512</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
