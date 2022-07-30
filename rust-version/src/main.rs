@@ -2,13 +2,13 @@
 use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
 use std::str::from_utf8;
-use std::{thread, mem};
+use std::{thread, mem, os};
 use std::time::Duration;
 
 use std::mem::MaybeUninit;
 use nix::sys::socket::MsgFlags;
-use nix::sys::socket::{recv, send, setsockopt as nset};
-use nix::sys::socket::sockopt::SendTimeout;
+use nix::sys::socket::{recv, send, setsockopt as nix_setsockopt};
+
 use std::os::unix::io::{AsRawFd, RawFd};
 use nix::{errno, libc};
 use nix::errno::Errno::ETIMEDOUT;
@@ -80,10 +80,12 @@ fn main_1()  {
 //     TcpUserTimeout, Both, libc::IPPROTO_TCP, libc::TCP_USER_TIMEOUT, u32);
 
 fn main()  {
+
+
     // 起多个线程，做线程序列，[ 5min 10min 15m 30m 1h 2h 4h 8h 12h 18h 24h 28h 36h]
     // 如果正常断开，比如15分钟，那么在某一时间段，30m 1h 2h 4h 8h 12h 18h 24h 28h 36h] 这些连接都能收到reset包正常断开。
     // 如果不能正常，就按照时间序列探测。
-    let mut stream = TcpStream::connect("192.168.10.128:8008").expect("bind failed!");
+    let mut stream = TcpStream::connect("192.168.1.2:8008").expect("bind failed!");
     // for stream in listener.incoming() {
     //     let mut stream = stream.unwrap();
     let mut buf = [0u8; 1024];
@@ -119,13 +121,43 @@ fn main()  {
     println!("------will write------");
     stream.set_write_timeout(Some(Duration::new(10, 0))); // 无效参数，仅仅针对本地写到缓存，而不是完整的链路
     // 根据平台区分
-    unsafe {
-        let value = 1u8; // 重传超时时间，不是次数，大概是发四次包的样子，0x18 tcp_user_timeout
-        // value as *const u8 as *const c_void
-        let a = setsockopt(stream.as_raw_fd(), 0x06, 0x80,
-                           &value as *const u8 as *const c_void,  mem::size_of::<c_int>() as u32);
-        println!("set: {}", a);
+
+    let tcp_user_timeout = 1u32; // 重传超时时间，不是次数，大概是发四次包的样子，0x18 tcp_user_timeout macos tcpxxx: 0x80
+    // 都可用，但是单位不一样，linux millens ref: https://man7.org/linux/man-pages/man7/tcp.7.html：
+    //  it specifies the maximum
+    //  amount of time in milliseconds that transmitted data may
+    //  remain unacknowledged, or bufferred data may remain
+    //  untransmitted (due to zero window size) before TCP will
+    //  forcibly close the corresponding connection and return
+    //  ETIMEDOUT to the application.  If the option value is
+    //  specified as 0, TCP will use the system default.
+    //
+    // macos为second
+    if cfg!(target_os = "linux") {
+        // unsafe {
+        //     let a = setsockopt(stream.as_raw_fd(), 0x06, 0x12,
+        //                        &tcp_user_timeout as *const u32 as *const c_void,  mem::size_of::<c_int>() as u32);
+        //     println!("lib set sockopt error: {}", a);
+        // }
+        // 两种方法都可以；
+        use nix::sys::socket::sockopt::TcpUserTimeout;
+        // //  这玩意只不过写了个 宏调用 libc，做了一些封装
+        match nix_setsockopt(stream.as_raw_fd(), TcpUserTimeout, &(tcp_user_timeout as u32)) {
+            Ok(_) => {},
+            Err(e) => {println!("nix_lib set sockopt error: {:?}", e)},
+        }
+    } else if cfg!(target_os = "macos") {
+        unsafe {
+            let a = setsockopt(stream.as_raw_fd(), 0x06, 0x80,
+                               &tcp_user_timeout as *const u32 as *const c_void,  mem::size_of::<c_int>() as u32);
+            println!("lib set sockopt error: {}", a);
+        }
+    } else {
+        println!("Unsupported platform!");
+        std::process::exit(1);
     }
+
+
 
     match send(stream.as_raw_fd(), b"one hello", MsgFlags::empty()) {
         Ok(size) => {
@@ -160,11 +192,12 @@ fn main()  {
 
     println!("-----check----");
 
-    thread::sleep(Duration::from_secs(2));
+    thread::sleep(Duration::from_secs(3));
     // 如果检测时，tcp孩子重试，则此处的错误为：EAGAIN！！！所以一定要确保检测时，已经重试完毕。
     // 从抓包情况来看，重试的完如果不同系统就直接发reset包，而程序结束时发[FIN]包，
     // 至于先发reset还是[FIN]，如果正常通信的情况下，互相发完fin，就完了，不会发reset包。
     // 非正常情况，程序的fin和系统的reset各发各的，互不影响。但是先发reset就不发fin了，反过来不成立
+    // 似乎linux不发送reset
     {
         let mut peek_buf = [0u8; 1];
         match recv(stream.as_raw_fd(), &mut peek_buf, MsgFlags::MSG_PEEK | MsgFlags::MSG_DONTWAIT) {
