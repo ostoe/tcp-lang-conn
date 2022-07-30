@@ -5,17 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ccaaad69-d121-4669-9342-11ef0114ea8b" name="默认变更列表" comment="release v0.1">
-      <change afterPath="$PROJECT_DIR$/go-version/go-version.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rust-version/rust-version.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go-version/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/go-version/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mytcp/MyTcpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/go-version/mytcp/MyTcpClient.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mytcp/MyTcpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/go-version/mytcp/MyTcpServer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tcp-lang-conn" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/tcp-lang-conn.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-version/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +41,6 @@
     <property name="DefaultGoTemplateProperty" value="Go Application" />
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="configurable..is.expanded" value="true" />
@@ -200,7 +190,7 @@
       <workItem from="1652258417609" duration="3344000" />
       <workItem from="1658987714184" duration="16000" />
       <workItem from="1658988453322" duration="10302000" />
-      <workItem from="1659177995944" duration="50000" />
+      <workItem from="1659177995944" duration="423000" />
     </task>
     <task id="LOCAL-00001" summary="release v0.1">
       <created>1650959304717</created>
