@@ -197,7 +197,7 @@ fn main()  {
     // 从抓包情况来看，重试的完如果不同系统就直接发reset包，而程序结束时发[FIN]包，
     // 至于先发reset还是[FIN]，如果正常通信的情况下，互相发完fin，就完了，不会发reset包。
     // 非正常情况，程序的fin和系统的reset各发各的，互不影响。但是先发reset就不发fin了，反过来不成立
-    // 似乎linux不发送reset
+    // 似乎linux不发送reset--
     {
         let mut peek_buf = [0u8; 1];
         match recv(stream.as_raw_fd(), &mut peek_buf, MsgFlags::MSG_PEEK | MsgFlags::MSG_DONTWAIT) {
