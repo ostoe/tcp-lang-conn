@@ -64,7 +64,7 @@
       <recent name="$PROJECT_DIR$/src" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Run tcp-lang-conn">
+  <component name="RunManager" selected="Go 构建.go build tcp-lang-conn (1)">
     <configuration default="true" type="ArquillianTestNG" factoryName="" nameIsGenerated="true">
       <option name="arquillianRunConfiguration">
         <value>
@@ -118,14 +118,6 @@
       <output_directory value="$PROJECT_DIR$/" />
       <method v="2" />
     </configuration>
-    <configuration name="go build MyTcpServer.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
-      <module name="tcp-lang-conn" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="FILE" />
-      <filePath value="$PROJECT_DIR$/src/MyTcpServer.go" />
-      <directory value="$PROJECT_DIR$" />
-      <method v="2" />
-    </configuration>
     <configuration name="go build Server" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
       <module name="tcp-lang-conn" />
       <working_directory value="$PROJECT_DIR$" />
@@ -134,6 +126,15 @@
       <filePath value="$PROJECT_DIR$/main.go" />
       <directory value="$PROJECT_DIR$" />
       <output_directory value="$PROJECT_DIR$/" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go build tcp-lang-conn (1)" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="tcp-lang-conn" />
+      <working_directory value="$PROJECT_DIR$/go-version" />
+      <kind value="PACKAGE" />
+      <filePath value="$PROJECT_DIR$/go-version/main.go" />
+      <package value="tcp-lang-conn" />
+      <directory value="$PROJECT_DIR$" />
       <method v="2" />
     </configuration>
     <configuration name="go build tcp-lang-conn" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
@@ -148,18 +149,18 @@
     <list>
       <item itemvalue="Cargo.Run" />
       <item itemvalue="Cargo.Run tcp-lang-conn" />
-      <item itemvalue="Go 构建.go build MyTcpServer.go" />
       <item itemvalue="Go 构建.go build Client" />
       <item itemvalue="Go 构建.go build Server" />
       <item itemvalue="Go 构建.go build tcp-lang-conn" />
+      <item itemvalue="Go 构建.go build tcp-lang-conn (1)" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Go 构建.go build tcp-lang-conn (1)" />
         <item itemvalue="Cargo.Run tcp-lang-conn" />
         <item itemvalue="Go 构建.go build tcp-lang-conn" />
         <item itemvalue="Go 构建.go build Client" />
         <item itemvalue="Go 构建.go build Server" />
-        <item itemvalue="Go 构建.go build MyTcpServer.go" />
       </list>
     </recent_temporary>
   </component>
