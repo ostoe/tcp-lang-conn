@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/tcp-lang-conn.iml" filepath="$PROJECT_DIR$/tcp-lang-conn.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/tcp-lang-conn.iml" filepath="$PROJECT_DIR$/.idea/tcp-lang-conn.iml" />
     </modules>
   </component>
 </project>

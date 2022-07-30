@@ -1,0 +1,11 @@
+/Users/fly/workspace/golang/tcp-lang-conn/rust-version/target/debug/deps/socket2-5d906cbb1b6aa0b4.rmeta: /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/lib.rs /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/sockaddr.rs /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/socket.rs /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/sockref.rs /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/sys/unix.rs
+
+/Users/fly/workspace/golang/tcp-lang-conn/rust-version/target/debug/deps/libsocket2-5d906cbb1b6aa0b4.rlib: /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/lib.rs /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/sockaddr.rs /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/socket.rs /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/sockref.rs /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/sys/unix.rs
+
+/Users/fly/workspace/golang/tcp-lang-conn/rust-version/target/debug/deps/socket2-5d906cbb1b6aa0b4.d: /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/lib.rs /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/sockaddr.rs /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/socket.rs /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/sockref.rs /Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/sys/unix.rs
+
+/Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/lib.rs:
+/Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/sockaddr.rs:
+/Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/socket.rs:
+/Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/sockref.rs:
+/Users/fly/.cargo/registry/src/mirrors.ustc.edu.cn-12df342d903acd47/socket2-0.4.4/src/sys/unix.rs:
