@@ -292,7 +292,7 @@ fn start_client_sub_thread(thread_index: usize, addr_port: &str, probe_time: Dur
                             println!("[{}] {:?} \x1b[40;32mhas alive\x1b[0m [EAGAIN]", thread_index, probe_time);
                         }
                         errno::Errno::ECONNRESET => {
-                            // color wrong! todo --
+                            // color wrong! todo ---
                             println!("[{}]: {:?} connection \x1f[40;32mclosed\x1f[0m [R] some connection was killed!", thread_index, probe_time);
                             // println!("connection closed [R]")
                         }
