@@ -486,6 +486,7 @@ fn main111()  {
         }
     } else if cfg!(target_os = "macos") {
         unsafe {
+
             let a = setsockopt(stream.as_raw_fd(), 0x06, 0x80,
                                &tcp_user_timeout as *const u32 as *const c_void,  mem::size_of::<c_int>() as u32);
             println!("lib set sockopt error: {}", a);
