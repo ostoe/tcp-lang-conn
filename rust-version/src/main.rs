@@ -19,6 +19,17 @@ use std::os::raw::{c_void, c_int};
 use std::sync::mpsc;
 use nix::libc::clone;
 
+// struct  Color {
+//     HEADER : '\033[95m',
+//     OKBLUE = '\033[94m',
+//     OKCYAN = '\033[96m'
+//     OKGREEN = '\033[92m'
+//     WARNING = '\033[93m'
+//     FAIL = '\033[91m'
+//     ENDC = '\033[0m'
+//     BOLD = '\033[1m'
+//     UNDERLINE = '\033[4m'
+// }
 
 fn main() {
 
@@ -277,15 +288,16 @@ fn start_client_sub_thread(thread_index: usize, addr_port: &str, probe_time: Dur
                 Err(e) => {
                     match e {
                         errno::Errno::EAGAIN | errno::Errno::EWOULDBLOCK => {
-                            println!("operation would block, Try again, [EAGAIN]");
-                            println!("[{}]: {:?} has alive", thread_index, probe_time);
+                            // println!("operation would block, Try again, [EAGAIN]");
+                            println!("[{}] {:?} \x1b[40;32mhas alive\x1b[0m [EAGAIN]", thread_index, probe_time);
                         }
                         errno::Errno::ECONNRESET => {
-                            println!("[{}]: {:?} connection closed [R] some connection was killed!", thread_index, probe_time);
+                            // color wrong! todo
+                            println!("[{}]: {:?} connection \x1f[40;32mclosed\x1f[0m [R] some connection was killed!", thread_index, probe_time);
                             // println!("connection closed [R]")
                         }
                         errno::Errno::ETIMEDOUT => {
-                            println!("[{}]: {:?} NO response!!! some connection was killed!", thread_index, probe_time);
+                            println!("[{}]: {:?} \x1f[40;32mNO response!!!\x1f[0m some connection was killed!", thread_index, probe_time);
                             // todo recycle probe but now exit;
                             std::process::exit(1);
 
