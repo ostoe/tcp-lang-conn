@@ -3,7 +3,7 @@
 
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, TcpStream};
 use std::io::{Read, Write};
-use std::str::from_utf8;
+use std::str::{from_utf8, FromStr};
 use std::{thread, mem, os};
 use std::time::{Duration, Instant};
 
@@ -19,6 +19,7 @@ use std::os::raw::{c_void, c_int};
 use std::sync::mpsc;
 #[cfg(target_family = "linux")]
 use nix::sys::socket::sockopt::TcpUserTimeout; // 参考nix sockopt 跨平台用法，再不行就用macro
+use crate::Message::Probe;
 
 
 // struct  Color {
@@ -36,6 +37,54 @@ use nix::sys::socket::sockopt::TcpUserTimeout; // 参考nix sockopt 跨平台用
 fn main() {
 
     let args: Vec<String> = std::env::args().collect();
+    let (tx, rx) = mpsc::channel::<Message>();
+    // todo 引用计数 显示所有thread数
+    thread::spawn(move || {
+        // 统一消息的处理中心！
+        let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
+        loop {
+            match rx.recv() {
+                Ok(m) => {
+                    match m {
+                        Message::FIN(s) => {
+                            println!("[FIN] {}  {}", s.addr.unwrap_or(default_addr).to_string(), s.content)
+                        },
+                        Message::RESET(s) => {
+                            println!("[RESET] {}  {}", s.addr.unwrap_or(default_addr).to_string(), s.content)
+                        },
+                        Message::Read1thError(s) | Message::Write1thError(s) => {
+                            println!("[FIN] {}  {} \nRead/Write error on init connection.",
+                                     s.addr.unwrap_or(default_addr).to_string(), s.content)
+                        },
+                        Message::CheckError(s) => {
+                            println!("[check] {}  {}", s.addr.unwrap_or(default_addr).to_string(), s.content)
+                        },
+                        Message::Probe(addr, e, thread_index, probe_time) => {
+                            // 控制线程。。。？？？似乎不行了
+                            match e {
+                                errno::Errno::EAGAIN | errno::Errno::EWOULDBLOCK => {
+                                    println!("[{}] {:?} \x1b[40;32mhas alive\x1b[0m [EAGAIN]", thread_index, probe_time)
+                                }
+                                errno::Errno::ECONNRESET => { // [R]
+                                    println!("[{}]: {:?} connection \x1b[41;37mclosed [R]\x1b[0m some connection was killed!", thread_index, probe_time);
+                                    std::process::exit(0);
+                                }
+                                errno::Errno::ETIMEDOUT => {
+                                    println!("[{}]: {:?} \x1b[41;37m[TIMEOUT]\x1b[0m some connection was killed!", thread_index, probe_time);
+                                    // todo recycle probe but now exit;
+                                    std::process::exit(0);
+
+                                }
+                                others => { println!("[{}]: {:?} probe check other error: {}!", thread_index, probe_time, others); }
+                            }
+                        }
+                        _ => {},
+                    }
+                }
+                _ => {}
+            }
+        }
+    });
     match args.len() {
         1..=2 => {
             // todo
@@ -45,12 +94,12 @@ fn main() {
             match args[1].as_str() {
                 "s"|"S" => {
                     // todo check "0.0.0.0:8001"
-                    start_server(args[2].as_str());
+                    start_server(args[2].as_str(), tx);
 
                 }
                 "c" | "C" => {
                     // todo check "192.3.2.1:8001"
-                    start_client(args[2].as_str());
+                    start_client(args[2].as_str(), tx);
                     // start_client();
                 }
                 mode => {
@@ -66,54 +115,93 @@ fn main() {
 
 }
 
-fn start_server(addr_port: &str) {
+struct  WrapperMessage {
+    addr: std::io::Result<SocketAddr>,
+    content: String,
+}
+
+
+enum Message {
+    FIN(WrapperMessage),
+    RESET(WrapperMessage),
+    Read1thError(WrapperMessage),
+    Write1thError(WrapperMessage),
+    CheckError(WrapperMessage),
+    Probe(std::io::Result<SocketAddr>, errno::Errno, usize, Duration),
+
+}
+
+fn start_server(addr_port: &str, tx: mpsc::Sender<Message>) {
     // addr
     let listener = TcpListener::bind(addr_port).expect("bind failed!");
-
-    let (tx, rx) = mpsc::channel::<u32>();
     let check_intervel = Duration::from_millis(200);
-    let tx_clone = tx.clone();
-    // todo 引用计数 显示所有thread数
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
-        let send_content = "Server hello";
-        thread::spawn(move || {server_handle(stream, send_content, check_intervel);});
+
+        let tx_t = tx.clone();
+        thread::spawn(move || {
+            if stream_rw_unit(&mut stream, true, &tx_t, &0) { return; };
+            // thread::sleep(Duration::from_secs(5));
+            let start_time = std::time::Instant::now();
+            check_loop(stream, check_intervel, start_time, tx_t);
+        });
 
     }
+
 }
 
-
-fn server_handle(mut stream: TcpStream, send_str: &str, check_intervel: Duration/* milliseconds */) {
+// 返回true，代表立即返回不继续执行！
+fn stream_rw_unit(stream: &mut TcpStream, is_server: bool, tx: &mpsc::Sender<Message>, thread_index: &usize) -> bool {
     let mut buf = [0u8; 1024];
-    match stream.read(&mut buf) {
-        Ok(size) => {
-            if size != 0 {
-                println!("recv: {}", from_utf8(&buf[..size]).unwrap());
-            } else {
-                println!("read closed. reached EOF, maybe[FIN]");
+    let sequence_is_read_for_server = [true, false];
+    let send_content = "Server hello";
+    if !is_server {
+        let sequence_is_read_for_server = [false, true];
+        let send_content = format!("[{}]Client hello", *thread_index).as_bytes();
+    }
+    for x in sequence_is_read_for_server {
+        if x {
+            match stream.read(&mut buf) {
+                Ok(size) => {
+                    if size != 0 {
+                        println!("recv: {}", from_utf8(&buf[..size]).unwrap_or_default());
+                    } else {
+                        tx.send(Message::FIN(WrapperMessage{addr: stream.peer_addr(), content: "reached EOF,".to_string() } ))
+                            .unwrap_or_default();
+                        // println!("read closed. reached EOF, maybe[FIN]");
+                        return true;
+                    }
+                }
+                Err(e) => {
+                    // println!("first read error:{}", e.kind());
+                    tx.send(  Message::Read1thError( WrapperMessage{addr: stream.peer_addr(), content:format!("first read error: {:?}", e.kind()) } ))
+                        .unwrap_or_default();
+                    return true;
+                }
+
+            }
+        } else {
+            // write back to clint: Server hello;
+            match stream.write(send_content.as_ref()) {
+                Ok(_) => {
+                    println!("write back.")
+                }
+                Err(e) => {
+                    // println!("{}", e.kind());
+                    tx.send(  Message::Write1thError( WrapperMessage{addr: stream.peer_addr(), content:format!("first write error: {:?}", e.kind()) } ))
+                        .unwrap_or_default();
+                    return true;
+                }
             }
         }
-        Err(e) => {
-            // println!("first read error:{}", e.kind());
-            panic!("first read error: {:?}", e.kind());
-        }
+    }
 
-    }
-    // write back to clint: Server hello;
-    match stream.write(send_str.as_ref()) {
-        Ok(_) => {
-            println!("write back.")
-        }
-        Err(e) => {
-            // println!("{}", e.kind());
-            panic!("first send error: {:?}", e.kind());
-        }
-    }
-    // thread::sleep(Duration::from_secs(5));
-    let start_time = std::time::Instant::now();
-    check_loop(stream, check_intervel, start_time);
+    return false;
 }
-fn start_client(addr_port: &str) {
+
+
+
+fn start_client(addr_port: &str, tx: mpsc::Sender<Message>) {
     // let addr_port: &str = "192.168.1.2:80018";
     // 起多个线程，做线程序列，[ 5min 10min 15m 30m 1h 2h 4h 8h 12h 18h 24h 28h 36h]
     // 如果正常断开，比如15分钟，那么在某一时间段，30m 1h 2h 4h 8h 12h 18h 24h 28h 36h] 这些连接都能收到reset包正常断开。
@@ -123,6 +211,7 @@ fn start_client(addr_port: &str) {
     let check_interval = Duration::from_millis(100);
     for thread_index in 0..threads_lists.len() {
         // todo 引用计数。。。。tx rt 等等
+        let tx_t = tx.clone();
         let probe_time = threads_lists[thread_index];
         let addr_port_move = addr_port.to_string(); // ???? todo !!!!!!!!!!!
         if !(thread_index == threads_lists.len() - 1) {
@@ -130,14 +219,16 @@ fn start_client(addr_port: &str) {
                                                            &addr_port_move,
                                                           probe_time,
                                                           false,
-                                                          None // remove optional test
+                                                          None, // remove optional test,
+                                                            tx_t
             );} );
         } else {
             start_client_sub_thread(thread_index+1,
                                     &addr_port_move,
                                     threads_lists[thread_index],
                                     true,
-                                    Some(check_interval) );
+                                    Some(check_interval),
+                                                tx_t);
         }
     }
 }
@@ -145,59 +236,60 @@ fn start_client(addr_port: &str) {
 
 fn start_client_sub_thread(thread_index: usize, addr_port: &str,
                            probe_time: Duration, is_control_thread: bool,
-                           check_interval: Option<Duration>) {
+                           check_interval: Option<Duration>, tx: mpsc::Sender<Message>) {
     let mut stream = TcpStream::connect(addr_port).expect("connection failed!");
     // for stream in listener.incoming() {
     //     let mut stream = stream.unwrap();
     // stream.set_write_timeout(Some(Duration::new(5, 0)));
 
-    let client_hello = format!("[{}]Client hello", thread_index);
+    // let client_hello = format!("[{}]Client hello", thread_index);
 
-    match stream.write(client_hello.as_bytes()) {
-        Ok(_) => {
-            println!("[{}]client send.", thread_index);
-        }
-        Err(e) => {
-            if !is_control_thread {
-                println!("[{}]first send error: {:?}",thread_index, e.kind());
-                return;
-            } else {
-                println!("control_thread:[{}]first send error: {:?}",thread_index, e.kind());
-                std::process::exit(1);
-            }
-
-        }
-    }
-    let mut buf = [0u8; 1024];
-    // 过了很久以后这一次发包，1。 如果正常回包，说明链接活着，2。 如果超时，说明挂了，3。 如果收到了reset，说明就是HCS的情况
-    match stream.read(&mut buf) {
-        Ok(size) => {
-            if !is_control_thread {
-                if size != 0 {
-                    println!("[{}]read: {}", thread_index, from_utf8(&buf[..size]).unwrap());
-                } else {
-                    println!("[{}]read closed[FIN]", thread_index);
-                    return;
-                }
-            } else {
-                if size != 0 {
-                    println!("control_thread[{}]read: {}", thread_index, from_utf8(&buf[..size]).unwrap());
-                } else {
-                    println!("control_thread[{}]read closed[FIN]", thread_index);
-                    std::process::exit(0);
-                }
-            }
-        }
-        Err(e) => {
-            println!("[{}]client read error: {:?}",thread_index, e.kind());
-        }
-
-    }
+    if stream_rw_unit(&mut stream, false, &tx, &thread_index) { return; };
+    //
+    // match stream.write(client_hello.as_bytes()) {
+    //     Ok(_) => {
+    //         println!("[{}]client send.", thread_index);
+    //     }
+    //     Err(e) => {
+    //         if !is_control_thread {
+    //             println!("[{}]first send error: {:?}",thread_index, e.kind());
+    //             return;
+    //         } else {
+    //             println!("control_thread:[{}]first send error: {:?}",thread_index, e.kind());
+    //             std::process::exit(1);
+    //         }
+    //
+    //     }
+    // }
+    // let mut buf = [0u8; 1024];
+    // // 过了很久以后这一次发包，1。 如果正常回包，说明链接活着，2。 如果超时，说明挂了，3。 如果收到了reset，说明就是HCS的情况
+    // match stream.read(&mut buf) {
+    //     Ok(size) => {
+    //         if !is_control_thread {
+    //             if size != 0 {
+    //                 println!("[{}]read: {}", thread_index, from_utf8(&buf[..size]).unwrap());
+    //             } else {
+    //                 println!("[{}]read closed[FIN]", thread_index);
+    //                 return;
+    //             }
+    //         } else {
+    //             if size != 0 {
+    //                 println!("control_thread[{}]read: {}", thread_index, from_utf8(&buf[..size]).unwrap());
+    //             } else {
+    //                 println!("control_thread[{}]read closed[FIN]", thread_index);
+    //                 std::process::exit(0);
+    //             }
+    //         }
+    //     }
+    //     Err(e) => {
+    //         println!("[{}]client read error: {:?}",thread_index, e.kind());
+    //     }
+    //
+    // }
 
     // 设置 定shide probe thread
     if !is_control_thread {
         thread::sleep(probe_time);
-
         let write_content = "heartbeat".as_bytes();
         println!("------[{}]will probe------", thread_index);
         stream.set_write_timeout(Some(Duration::new(1, 0))); // 无效参数，仅仅针对本地写到缓存，而不是完整的链路
@@ -227,7 +319,7 @@ fn start_client_sub_thread(thread_index: usize, addr_port: &str,
             #[cfg(target_family = "linux")]
             match nix_setsockopt(stream.as_raw_fd(), TcpUserTimeout, &(tcp_user_timeout as u32)) {
                 Ok(_) => {},
-                Err(e) => {println!("nix_lib set sockopt error: {:?}", e)},
+                Err(e) => {println!("nix_lib set sockopt error: {:?}", e)}, // ???? 遗留
             }
         } else if cfg!(target_os = "macos") {
             unsafe {
@@ -256,24 +348,17 @@ fn start_client_sub_thread(thread_index: usize, addr_port: &str,
                         println!("operation would block, Try again, [EAGAIN]")
                     }
                     errno::Errno::ECONNRESET => {
-                        println!("connection closed [R]")
+                        // tx.send(Message::FIN(WrapperMessage{addr: stream.peer_addr(), content: "reached EOF,".to_string() } ))
+                        //     .unwrap_or_default();
+                        println!("read closed. reached EOF, maybe[FIN]");
+                        // return;
                     }
-                    others => {println!("other error: {}", others)}
+                    others => { println!("[{}]: {:?} probe send other error: {}!", thread_index, probe_time, others); }
                 }
             }
         }
 
-        // match stream.write(b"second write") {
-        //         Ok(size) => {
-        //             println!("write back. {}", size);
-        //         }
-        //         Err(e) => {
-        //             println!("{:?}", e.kind());
-        //         }
-        //     }
-
-
-        println!("-----check----");
+        println!("[{}]-----check after probe----", thread_index);
 
         thread::sleep(Duration::from_secs(3));
         // 如果检测时，tcp孩子重试，则此处的错误为：EAGAIN！！！所以一定要确保检测时，已经重试完毕。
@@ -286,70 +371,59 @@ fn start_client_sub_thread(thread_index: usize, addr_port: &str,
             match recv(stream.as_raw_fd(), &mut peek_buf, MsgFlags::MSG_PEEK | MsgFlags::MSG_DONTWAIT) {
                 Ok(size) => {
                     if size == 0 {
-                        println!("check closed[FIN]")
+                        println!("check closed[FIN]") // never run
                     } else {
-                        println!("check peek:{}", size);
+                        println!("check peek:{}", size); // never run
                     }
                 }
                 Err(e) => {
-                    match e {
-                        errno::Errno::EAGAIN | errno::Errno::EWOULDBLOCK => {
-                            // println!("operation would block, Try again, [EAGAIN]");
-                            println!("[{}] {:?} \x1b[40;32mhas alive\x1b[0m [EAGAIN]", thread_index, probe_time);
-                        }
-                        errno::Errno::ECONNRESET => {
-                            // color wrong! todo ---
-                            println!("[{}]: {:?} connection \x1b[41;37mclosed [R]\x1b[0m some connection was killed!", thread_index, probe_time);
-                            // println!("connection closed [R]")
-                        }
-                        errno::Errno::ETIMEDOUT => {
-                            println!("[{}]: {:?} \x1b[41;37m[TIMEOUT]\x1b[0m some connection was killed!", thread_index, probe_time);
-                            // todo recycle probe but now exit;
-                            std::process::exit(1);
-
-                        }
-                        others => { println!("[{}]: {:?} other error: {}!", thread_index, probe_time, others); }
-                    }
+                    tx.send(Message::Probe(stream.peer_addr(), errno::Errno::EAGAIN, thread_index, probe_time)).unwrap();
                 }
             }
         }
         return;
     }
     else {
-        check_loop(stream, check_interval.unwrap(), Instant::now());
+        check_loop(stream, check_interval.unwrap(), Instant::now(), tx);
     }
 
 }
 
-fn check_loop(mut stream: TcpStream, check_interval: Duration, start_time: std::time::Instant) {
+fn check_loop(mut stream: TcpStream, check_interval: Duration, start_time: std::time::Instant, tx: mpsc::Sender<Message>) {
     let mut buf:[u8;1024] = [0;1024];
+    let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
     loop {
         thread::sleep(check_interval);
         let mut peek_buf = [0u8; 1];
         match  recv(stream.as_raw_fd(), &mut peek_buf, MsgFlags::MSG_PEEK | MsgFlags::MSG_DONTWAIT ) {
             Ok(size) => {
                 if size == 0 {
-                    println!("[{:?}] closed[FIN]", stream.peer_addr());
+                    // println!("[{:?}] closed[FIN]", stream.peer_addr());
                     let duration_time = std::time::Instant::now().duration_since(start_time);
-                    println!("[Result] connection alive time: {:?}-------", duration_time);
-                    std::process::exit(0);
+                    tx.send(  Message::FIN( WrapperMessage{addr: stream.peer_addr(),
+                        content:format!("connection duration time: {:?}-------", duration_time) } ))
+                        .unwrap_or_default();
+                    return;
                 } else {
                     // normal
-                    // println!("peek:{}", size);
                     match stream.read(&mut buf) {
                         Ok(size) => {
                             if size != 0 {
-                                println!("recv: {}", from_utf8(&buf[..size]).unwrap());
+                                println!("recv from{}: {}",stream.peer_addr().unwrap_or(default_addr).to_string(),
+                                         from_utf8(&buf[..size]).unwrap_or_default());
                             } else {
-                                println!("read closed. reached EOF, maybe[FIN]");
                                 let duration_time = std::time::Instant::now().duration_since(start_time);
-                                println!("[Result] connection alive time: {:?}-------", duration_time);
-                                std::process::exit(0);
+                                tx.send(  Message::FIN( WrapperMessage{addr: stream.peer_addr(),
+                                    content:format!("connection duration time: {:?}<-------reached EOF, maybe[FIN]", duration_time) } ))
+                                    .unwrap_or_default();
+                                return;
+
                             }
                         }
                         Err(e) => {
-                            // println!("first read error:{}", e.kind());
-                            panic!("first read error: {:?}", e.kind());
+                            tx.send(  Message::CheckError( WrapperMessage{addr: stream.peer_addr(), content:format!("check read error: {:?}", e.kind()) } ))
+                                .unwrap_or_default();
+                            return;
                         }
 
                     }
@@ -361,15 +435,20 @@ fn check_loop(mut stream: TcpStream, check_interval: Duration, start_time: std::
                         // print!("operation would block, Try again, [EAGAIN]\r")
                     }
                     errno::Errno::ECONNRESET => {
-                        println!("[{:?}] connection closed [R]", stream.peer_addr().unwrap_or(SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 8080)));
                         let duration_time = std::time::Instant::now().duration_since(start_time);
-                        println!("[Result] connection alive time: {:?}-------", duration_time);
-                        std::process::exit(0);
+                        tx.send(  Message::RESET( WrapperMessage{addr: stream.peer_addr(),
+                            content:format!("connection duration time: {:?}", duration_time) } ))
+                            .unwrap_or_default();
+                        return;
                     }
-                    others => {println!("other error[check_loop]: {}", others); std::process::exit(1);}
+                    others => {
+                        tx.send(  Message::CheckError( WrapperMessage{addr: stream.peer_addr(), content:format!("other error[check_loop]: {:?}", e) } ))
+                            .unwrap_or_default();
+                        return;
 
                 }
             }
+        }
         }
     }
 }
