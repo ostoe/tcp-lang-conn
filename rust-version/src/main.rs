@@ -94,8 +94,8 @@ fn server_handle(mut stream: TcpStream, send_str: &str, check_intervel: Duration
             }
         }
         Err(e) => {
-            println!("first read error:{}", e.kind());
-            panic!("read error: {}", e.kind().to_string())
+            // println!("first read error:{}", e.kind());
+            panic!("first read error: {}", e.kind().to_string());
         }
 
     }
@@ -105,8 +105,8 @@ fn server_handle(mut stream: TcpStream, send_str: &str, check_intervel: Duration
             println!("write back.")
         }
         Err(e) => {
-            println!("{}", e.kind());
-            panic!("send error: {}", e.kind().to_string())
+            // println!("{}", e.kind());
+            panic!("first send error: {}", e.kind().to_string());
         }
     }
     // thread::sleep(Duration::from_secs(5));
@@ -348,8 +348,8 @@ fn check_loop(mut stream: TcpStream, check_interval: Duration, start_time: std::
                             }
                         }
                         Err(e) => {
-                            println!("first read error:{}", e.kind());
-                            panic!("read error: {}", e.kind().to_string())
+                            // println!("first read error:{}", e.kind());
+                            panic!("first read error: {}", e.kind().to_string());
                         }
 
                     }
@@ -373,62 +373,3 @@ fn check_loop(mut stream: TcpStream, check_interval: Duration, start_time: std::
         }
     }
 }
-
-fn main_1()  {
-    let listener = TcpListener::bind("0.0.0.0:8008").expect("bind failed!");
-    for stream in listener.incoming() {
-        let mut stream = stream.unwrap();
-        let mut buf = [0u8; 1024];
-        match stream.read(&mut buf) {
-            Ok(size) => {
-                if size != 0 {
-                    println!("{}", from_utf8(&buf[..size]).unwrap());
-                } else {
-                    println!("read closed[FIN]");
-                }
-            }
-            Err(e) => {
-                println!("{}", e.kind());
-            }
-
-        }
-
-        match stream.write(&buf) {
-            Ok(_) => {
-                println!("write back.")
-            }
-            Err(e) => {
-                println!("{}", e.kind());
-            }
-        }
-        thread::sleep(Duration::from_secs(5));
-
-        {
-
-            let mut peek_buf = [0u8; 1];
-            match  recv(stream.as_raw_fd(), &mut peek_buf, MsgFlags::MSG_PEEK | MsgFlags::MSG_DONTWAIT ) {
-                Ok(size) => {
-                    if size == 0 {
-                        println!("closed[FIN]")
-                    } else {
-                        // normal
-                        println!("peek:{}", size);
-
-                    }
-                }
-                Err(e) => {
-                    match e {
-                        errno::Errno::EAGAIN | errno::Errno::EWOULDBLOCK => {
-                            println!("operation would block, Try again, [EAGAIN]")
-                        }
-                        errno::Errno::ECONNRESET => {
-                            println!("connection closed [R]")
-                        }
-                        others => {println!("other error: {}", others)}
-                    }
-                }
-            }
-        }
-    }
-}
-

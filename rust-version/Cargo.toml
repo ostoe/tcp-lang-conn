@@ -9,4 +9,3 @@ edition = "2021"
 socket2 = "0.4.4"
 
 nix = {version="0.24.1", feature = "net"}
-time = "0.3.11"
