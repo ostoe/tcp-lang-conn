@@ -20,6 +20,7 @@ use std::sync::mpsc;
 #[cfg(target_family = "linux")]
 use nix::sys::socket::sockopt::TcpUserTimeout; // 参考nix sockopt 跨平台用法，再不行就用macro
 use crate::Message::Probe;
+use std::ops::Sub;
 
 
 // struct  Color {
@@ -59,18 +60,19 @@ fn main() {
                         Message::CheckError(s) => {
                             println!("[check] {}  {}", s.addr.unwrap_or(default_addr).to_string(), s.content)
                         },
-                        Message::Probe(addr, e, thread_index, probe_time) => {
+                        Message::Probe(addr, e, thread_index, mut probe_time) => {
                             // 控制线程。。。？？？似乎不行了
+                            println!("addr: {}", addr.unwrap_or(default_addr).to_string());
                             match e {
                                 errno::Errno::EAGAIN | errno::Errno::EWOULDBLOCK => {
                                     println!("[{}] {:?} \x1b[40;32mhas alive\x1b[0m [EAGAIN]", thread_index, probe_time)
                                 }
                                 errno::Errno::ECONNRESET => { // [R]
-                                    println!("[{}]: {:?} connection \x1b[41;37mclosed [R]\x1b[0m some connection was killed!", thread_index, probe_time);
+                                    println!("[{}]: {:?} connection \x1b[41;36mclosed [R]\x1b[0m some connection was killed!", thread_index, probe_time);
                                     std::process::exit(0);
                                 }
                                 errno::Errno::ETIMEDOUT => {
-                                    println!("[{}]: {:?} \x1b[41;37m[TIMEOUT]\x1b[0m some connection was killed!", thread_index, probe_time);
+                                    println!("[{}]: {:?} \x1b[41;36m[TIMEOUT]\x1b[0m some connection was killed!", thread_index, probe_time);
                                     // todo recycle probe but now exit;
                                     std::process::exit(0);
 
@@ -134,6 +136,7 @@ enum Message {
 fn start_server(addr_port: &str, tx: mpsc::Sender<Message>) {
     // addr
     let listener = TcpListener::bind(addr_port).expect("bind failed!");
+    println!("Listener started");
     let check_intervel = Duration::from_millis(200);
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
@@ -153,11 +156,11 @@ fn start_server(addr_port: &str, tx: mpsc::Sender<Message>) {
 // 返回true，代表立即返回不继续执行！
 fn stream_rw_unit(stream: &mut TcpStream, is_server: bool, tx: &mpsc::Sender<Message>, thread_index: &usize) -> bool {
     let mut buf = [0u8; 1024];
-    let sequence_is_read_for_server = [true, false];
-    let send_content = "Server hello";
+    let mut sequence_is_read_for_server = [true, false];
+    let mut send_content= "Server hello".to_string();
     if !is_server {
-        let sequence_is_read_for_server = [false, true];
-        let send_content = format!("[{}]Client hello", *thread_index).as_bytes();
+        sequence_is_read_for_server = [false, true];
+        send_content = format!("[{}]Client hello", *thread_index);
     }
     for x in sequence_is_read_for_server {
         if x {
@@ -206,7 +209,7 @@ fn start_client(addr_port: &str, tx: mpsc::Sender<Message>) {
     // 起多个线程，做线程序列，[ 5min 10min 15m 30m 1h 2h 4h 8h 12h 18h 24h 28h 36h]
     // 如果正常断开，比如15分钟，那么在某一时间段，30m 1h 2h 4h 8h 12h 18h 24h 28h 36h] 这些连接都能收到reset包正常断开。
     // 如果不能正常，就按照时间序列探测。
-    let threads_lists = [30, 5u64*60, 10*60, 15*60, 30*60, 1*3600, 2*3600, 3*3600, 4*3600, 5*3600, 6*3600, 7*3600, 8* 3600,
+    let threads_lists = [15, 5u64*60, 10*60, 15*60, 30*60, 1*3600, 2*3600, 3*3600, 4*3600, 5*3600, 6*3600, 7*3600, 8* 3600,
                                 12 * 3600, 18* 3600, 24 * 3600, 28 * 3600, 36 * 3600, 7200*3600].map(|t| Duration::from_secs(t));
     let check_interval = Duration::from_millis(100);
     for thread_index in 0..threads_lists.len() {
@@ -377,7 +380,7 @@ fn start_client_sub_thread(thread_index: usize, addr_port: &str,
                     }
                 }
                 Err(e) => {
-                    tx.send(Message::Probe(stream.peer_addr(), errno::Errno::EAGAIN, thread_index, probe_time)).unwrap();
+                    tx.send(Message::Probe(stream.peer_addr(), e, thread_index, probe_time)).unwrap();
                 }
             }
         }
@@ -409,7 +412,7 @@ fn check_loop(mut stream: TcpStream, check_interval: Duration, start_time: std::
                     match stream.read(&mut buf) {
                         Ok(size) => {
                             if size != 0 {
-                                println!("recv from{}: {}",stream.peer_addr().unwrap_or(default_addr).to_string(),
+                                println!("recv from: {}: {}",stream.peer_addr().unwrap_or(default_addr).to_string(),
                                          from_utf8(&buf[..size]).unwrap_or_default());
                             } else {
                                 let duration_time = std::time::Instant::now().duration_since(start_time);

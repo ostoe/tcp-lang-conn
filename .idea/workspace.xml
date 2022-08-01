@@ -67,7 +67,7 @@
       <recent name="$PROJECT_DIR$/src" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.server">
+  <component name="RunManager" selected="Cargo.client  -&gt;">
     <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
       <option name="arquillianRunConfiguration">
         <value>
@@ -77,6 +77,21 @@
       <option name="TEST_OBJECT" value="class" />
       <method v="2">
         <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="client  -&gt;" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="command" value="run --package tcp-lang-conn --bin tcp-lang-conn c 192.168.10.128:8008 " />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$/rust-version" />
+      <option name="channel" value="DEFAULT" />
+      <option name="requiredFeatures" value="true" />
+      <option name="allFeatures" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <envs />
+      <option name="isRedirectInput" value="false" />
+      <option name="redirectInputPath" value="" />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
     <configuration name="client" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
@@ -149,6 +164,7 @@
     </configuration>
     <list>
       <item itemvalue="Cargo.client" />
+      <item itemvalue="Cargo.client  -&gt;" />
       <item itemvalue="Cargo.server" />
       <item itemvalue="Go 构建.go build Client" />
       <item itemvalue="Go 构建.go build Server" />
@@ -189,7 +205,7 @@
       <workItem from="1658987714184" duration="16000" />
       <workItem from="1658988453322" duration="10302000" />
       <workItem from="1659177995944" duration="990000" />
-      <workItem from="1659320990419" duration="14498000" />
+      <workItem from="1659320990419" duration="16317000" />
     </task>
     <task id="LOCAL-00001" summary="release v0.1">
       <created>1650959304717</created>
@@ -310,7 +326,14 @@
       <option name="project" value="LOCAL" />
       <updated>1659335770616</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="fix println err">
+      <created>1659349249669</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1659349249669</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
