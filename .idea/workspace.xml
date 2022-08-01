@@ -7,11 +7,7 @@
     <cargoProject FILE="$PROJECT_DIR$/rust-version/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ccaaad69-d121-4669-9342-11ef0114ea8b" name="默认变更列表" comment="release v0.1">
-      <change beforePath="$PROJECT_DIR$/rust-version/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-version/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-version/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/main.rs" afterDir="false" />
-    </list>
+    <list default="true" id="ccaaad69-d121-4669-9342-11ef0114ea8b" name="默认变更列表" comment="release v0.1" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -54,7 +50,11 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="go.import.settings.migrated" value="true" />
+    <property name="nodejs_package_manager_path" value="npm" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
+    <property name="project.structure.last.edited" value="项目" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.2" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -186,7 +186,7 @@
       <workItem from="1658987714184" duration="16000" />
       <workItem from="1658988453322" duration="10302000" />
       <workItem from="1659177995944" duration="990000" />
-      <workItem from="1659320990419" duration="3265000" />
+      <workItem from="1659320990419" duration="3689000" />
     </task>
     <task id="LOCAL-00001" summary="release v0.1">
       <created>1650959304717</created>
@@ -293,7 +293,14 @@
       <option name="project" value="LOCAL" />
       <updated>1659334815845</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="fix println">
+      <created>1659335302656</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1659335302656</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -316,7 +323,8 @@
     <MESSAGE value="u2" />
     <MESSAGE value="release v0.1" />
     <MESSAGE value="fix color" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix color" />
+    <MESSAGE value="fix println" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix println" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>

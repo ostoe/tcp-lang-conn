@@ -95,7 +95,7 @@ fn server_handle(mut stream: TcpStream, send_str: &str, check_intervel: Duration
         }
         Err(e) => {
             // println!("first read error:{}", e.kind());
-            panic!("first read error: {}", e.kind().to_string());
+            panic!("first read error: {:?}", e.kind());
         }
 
     }
@@ -106,7 +106,7 @@ fn server_handle(mut stream: TcpStream, send_str: &str, check_intervel: Duration
         }
         Err(e) => {
             // println!("{}", e.kind());
-            panic!("first send error: {}", e.kind().to_string());
+            panic!("first send error: {:?}", e.kind());
         }
     }
     // thread::sleep(Duration::from_secs(5));
@@ -349,7 +349,7 @@ fn check_loop(mut stream: TcpStream, check_interval: Duration, start_time: std::
                         }
                         Err(e) => {
                             // println!("first read error:{}", e.kind());
-                            panic!("first read error: {}", e.kind().to_string());
+                            panic!("first read error: {:?}", e.kind());
                         }
 
                     }
