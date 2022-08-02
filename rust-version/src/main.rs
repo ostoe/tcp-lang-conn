@@ -252,7 +252,6 @@ fn start_client_sub_thread(thread_index: usize, addr_port: &str,
     // stream.set_write_timeout(Some(Duration::new(5, 0)));
 
     // let client_hello = format!("[{}]Client hello", thread_index);
-    stream.set_keepalive(true);
     if stream_rw_unit(&mut stream, false, &tx, &thread_index) { return; };
 
 
