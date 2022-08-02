@@ -18,7 +18,7 @@ use libc::setsockopt;
 use std::os::raw::{c_void, c_int};
 use std::sync::mpsc;
 #[cfg(target_family = "linux")]
-use nix::sys::socket::sockopt::TcpUserTimeout; // 参考nix sockopt 跨平台用法，再不行就用macro
+use nix::sys::socket::sockopt::{TcpUserTimeout, KeepAlive}; // 参考nix sockopt 跨平台用法，再不行就用macro
 use crate::Message::Probe;
 use std::ops::Sub;
 use std::thread::JoinHandle;
@@ -262,6 +262,7 @@ fn start_client_sub_thread(thread_index: usize, addr_port: &str,
         println!("------[{}]will probe------", thread_index);
         stream.set_write_timeout(Some(Duration::new(1, 0))); // 无效参数，仅仅针对本地写到缓存，而不是完整的链路
         // 根据平台区分
+        nix_setsockopt(stream.as_raw_fd(), TcpUserTimeout, &(tcp_user_timeout as u32))
 
         let tcp_user_timeout = 1u32; // 重传超时时间，不是次数，大概是发四次包的样子，0x18 tcp_user_timeout macos tcpxxx: 0x80
         // 都可用，但是单位不一样，linux millens ref: https://man7.org/linux/man-pages/man7/tcp.7.html：
