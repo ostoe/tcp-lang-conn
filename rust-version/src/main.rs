@@ -21,6 +21,7 @@ use std::sync::mpsc;
 use nix::sys::socket::sockopt::TcpUserTimeout; // 参考nix sockopt 跨平台用法，再不行就用macro
 use crate::Message::Probe;
 use std::ops::Sub;
+use std::thread::JoinHandle;
 
 
 // struct  Color {
@@ -51,7 +52,8 @@ fn main() {
                             println!("[FIN] {}  {}", s.addr.unwrap_or(default_addr).to_string(), s.content)
                         },
                         Message::RESET(s) => {
-                            println!("[RESET] {}  {}", s.addr.unwrap_or(default_addr).to_string(), s.content)
+                            // s.addr 已经为空了
+                            println!("[RESET] {}  {}", "miss addr", s.content)
                         },
                         Message::Read1thError(s) | Message::Write1thError(s) => {
                             println!("[FIN] {}  {} \nRead/Write error on init connection.",
@@ -143,6 +145,7 @@ fn start_server(addr_port: &str, tx: mpsc::Sender<Message>) {
 
         let tx_t = tx.clone();
         thread::spawn(move || {
+
             if stream_rw_unit(&mut stream, true, &tx_t, &0) { return; };
             // thread::sleep(Duration::from_secs(5));
             let start_time = std::time::Instant::now();
@@ -212,19 +215,22 @@ fn start_client(addr_port: &str, tx: mpsc::Sender<Message>) {
     let threads_lists = [15, 5u64*60, 10*60, 15*60, 30*60, 1*3600, 2*3600, 3*3600, 4*3600, 5*3600, 6*3600, 7*3600, 8* 3600,
                                 12 * 3600, 18* 3600, 24 * 3600, 28 * 3600, 36 * 3600, 7200*3600].map(|t| Duration::from_secs(t));
     let check_interval = Duration::from_millis(100);
+    let mut a: Vec<JoinHandle<()>> = vec![];
     for thread_index in 0..threads_lists.len() {
         // todo 引用计数。。。。tx rt 等等
         let tx_t = tx.clone();
         let probe_time = threads_lists[thread_index];
         let addr_port_move = addr_port.to_string(); // ???? todo !!!!!!!!!!!
         if !(thread_index == threads_lists.len() - 1) {
-            thread::spawn(move || {start_client_sub_thread(thread_index+1,
+            let t1 = thread::spawn(move || {start_client_sub_thread(thread_index+1,
                                                            &addr_port_move,
                                                           probe_time,
                                                           false,
                                                           None, // remove optional test,
                                                             tx_t
             );} );
+
+            a.push(t1);
         } else {
             start_client_sub_thread(thread_index+1,
                                     &addr_port_move,
@@ -246,49 +252,9 @@ fn start_client_sub_thread(thread_index: usize, addr_port: &str,
     // stream.set_write_timeout(Some(Duration::new(5, 0)));
 
     // let client_hello = format!("[{}]Client hello", thread_index);
-
+    stream.set_keepalive(true);
     if stream_rw_unit(&mut stream, false, &tx, &thread_index) { return; };
-    //
-    // match stream.write(client_hello.as_bytes()) {
-    //     Ok(_) => {
-    //         println!("[{}]client send.", thread_index);
-    //     }
-    //     Err(e) => {
-    //         if !is_control_thread {
-    //             println!("[{}]first send error: {:?}",thread_index, e.kind());
-    //             return;
-    //         } else {
-    //             println!("control_thread:[{}]first send error: {:?}",thread_index, e.kind());
-    //             std::process::exit(1);
-    //         }
-    //
-    //     }
-    // }
-    // let mut buf = [0u8; 1024];
-    // // 过了很久以后这一次发包，1。 如果正常回包，说明链接活着，2。 如果超时，说明挂了，3。 如果收到了reset，说明就是HCS的情况
-    // match stream.read(&mut buf) {
-    //     Ok(size) => {
-    //         if !is_control_thread {
-    //             if size != 0 {
-    //                 println!("[{}]read: {}", thread_index, from_utf8(&buf[..size]).unwrap());
-    //             } else {
-    //                 println!("[{}]read closed[FIN]", thread_index);
-    //                 return;
-    //             }
-    //         } else {
-    //             if size != 0 {
-    //                 println!("control_thread[{}]read: {}", thread_index, from_utf8(&buf[..size]).unwrap());
-    //             } else {
-    //                 println!("control_thread[{}]read closed[FIN]", thread_index);
-    //                 std::process::exit(0);
-    //             }
-    //         }
-    //     }
-    //     Err(e) => {
-    //         println!("[{}]client read error: {:?}",thread_index, e.kind());
-    //     }
-    //
-    // }
+
 
     // 设置 定shide probe thread
     if !is_control_thread {
@@ -348,7 +314,7 @@ fn start_client_sub_thread(thread_index: usize, addr_port: &str,
             Err(e) => {
                 match e {
                     errno::Errno::EAGAIN | errno::Errno::EWOULDBLOCK => {
-                        println!("operation would block, Try again, [EAGAIN]")
+                        println!("operation would block, Try again, [EAGAIN]");
                     }
                     errno::Errno::ECONNRESET => {
                         // tx.send(Message::FIN(WrapperMessage{addr: stream.peer_addr(), content: "reached EOF,".to_string() } ))
