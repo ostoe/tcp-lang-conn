@@ -1,7 +1,4 @@
 use std::net::{TcpStream, SocketAddr};
-use std::time::Duration;
-use std::sync::mpsc;
-use std::thread;
 use std::str::{FromStr, from_utf8};
 use nix::sys::socket::{MsgFlags, recv};
 use std::os::unix::io::AsRawFd;
@@ -51,7 +48,7 @@ pub fn stream_rw_unit(stream: &mut TcpStream, is_server: bool, thread_index: usi
 }
 
 
-pub(crate) fn check_unit(stream: &mut TcpStream, check_interval: Duration, start_time: std::time::Instant) -> WrapperMessage {
+pub(crate) fn check_unit(stream: &mut TcpStream,  start_time: std::time::Instant) -> WrapperMessage {
     let mut buf:[u8;1024] = [0;1024];
     let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
     let mut peek_buf = [0u8; 1];
@@ -106,7 +103,7 @@ pub(crate) fn check_unit(stream: &mut TcpStream, check_interval: Duration, start
         Err(e) => {
             let duration_time = std::time::Instant::now().duration_since(start_time);
             match e {
-                errno::Errno::EAGAIN | errno::Errno::EWOULDBLOCK => {
+                errno::Errno::EAGAIN  => {
                     return WrapperMessage{
                         addr: stream.peer_addr(),
                         content: "".to_string(),

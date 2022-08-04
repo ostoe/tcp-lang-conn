@@ -9,6 +9,8 @@
   <component name="ChangeListManager">
     <list default="true" id="ccaaad69-d121-4669-9342-11ef0114ea8b" name="默认变更列表" comment="release v0.1">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-version/src/check_status.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/check_status.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-version/src/check_unit.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/check_unit.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rust-version/src/client.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/client.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rust-version/src/server.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/server.rs" afterDir="false" />
     </list>
@@ -68,7 +70,7 @@
       <recent name="$PROJECT_DIR$/src" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.server">
+  <component name="RunManager" selected="Cargo.client  -&gt;">
     <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
       <option name="arquillianRunConfiguration">
         <value>
@@ -206,7 +208,7 @@
       <workItem from="1658987714184" duration="16000" />
       <workItem from="1658988453322" duration="10302000" />
       <workItem from="1659177995944" duration="990000" />
-      <workItem from="1659320990419" duration="81520000" />
+      <workItem from="1659320990419" duration="83440000" />
     </task>
     <task id="LOCAL-00001" summary="release v0.1">
       <created>1650959304717</created>
@@ -369,7 +371,14 @@
       <option name="project" value="LOCAL" />
       <updated>1659583349865</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="fix println err">
+      <created>1659605161519</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1659605161519</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

@@ -1,7 +1,6 @@
 use std::net::SocketAddr;
 use nix::errno;
 use std::time::Duration;
-use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 // use std::fmt;
 #[derive(Default)]
@@ -46,7 +45,7 @@ pub enum Message {
 }
 
 impl Message {
-    pub fn handling_result(self, is_server: bool) {
+    pub fn handling_result(self) {
         let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
         match self {
             Message::FIN(s) => {
@@ -63,11 +62,11 @@ impl Message {
             Message::CheckError(s) => {
                 println!("[check] {}  {}", s.addr.unwrap_or(default_addr).to_string(), s.content)
             },
-            Message::Probe(addr, e, thread_index, mut probe_time) => {
+            Message::Probe(addr, e, thread_index, probe_time) => {
                 // 控制线程。。。？？？似乎不行了
                 println!("addr: {}", addr.unwrap_or(default_addr).to_string());
                 match e {
-                    errno::Errno::EAGAIN | errno::Errno::EWOULDBLOCK => {
+                    errno::Errno::EAGAIN => {
                         println!("[{}] {:?} \x1b[40;32mhas alive\x1b[0m [EAGAIN]", thread_index, probe_time)
                     }
                     errno::Errno::ECONNRESET => { // [R]
@@ -84,7 +83,6 @@ impl Message {
                     others => { println!("[{}]: {:?} probe check other error: {}!", thread_index, probe_time, others); }
                 }
             }
-            _ => {},
         }
     }
 }

@@ -1,20 +1,20 @@
 use std::time::{Duration, Instant};
-use std::sync::mpsc;
 use std::net::{TcpStream, SocketAddr};
 use std::{thread, mem};
-use nix::sys::socket::{setsockopt as nix_setsockopt, send, MsgFlags, recv };
+use nix::sys::socket::{send, MsgFlags, recv };
 use std::os::unix::io::AsRawFd;
 use nix::errno;
 use std::os::raw::{c_void, c_int};
 use libc::setsockopt;
-use crossbeam_channel::{Sender, Receiver, unbounded, tick, RecvError, TryRecvError, bounded};
+use crossbeam_channel::{Sender, Receiver, unbounded, bounded};
 #[cfg(target_family = "linux")]
 use nix::sys::socket::sockopt::{TcpUserTimeout, KeepAlive};
+#[cfg(target_family = "linux")]
+use nix::sys::socket::setsockopt as nix_setsockopt;
 use crate::check_unit::{stream_rw_unit, check_unit};
-use crate::check_status::{Message, CheckError};
+use crate::check_status::{CheckError};
 use std::str::FromStr;
 use crossbeam_channel::internal::SelectHandle;
-use std::ops::Index;
 use std::thread::JoinHandle; // 参考nix sockopt 跨平台用法，再不行就用macro
 
 
@@ -50,14 +50,15 @@ pub fn start_client(addr_port: &str) {
     thread::spawn(move || {
         let mut stream = TcpStream::connect(addr_port_move).expect("connection failed!");
         // stream.set_write_timeout(Some(Duration::new(5, 0)));
-        let (is_ok, e) = stream_rw_unit(&mut stream, false,  0);
+        let (is_ok, _) = stream_rw_unit(&mut stream, false,  0);
         if !is_ok {
             println!("first read/wirte error, Exit");
             drop(stream); return;
         }
         let start_time = std::time::Instant::now();
         loop {
-            let check_result = check_unit(&mut stream, check_interval, start_time);
+            thread::sleep(check_interval);
+            let check_result = check_unit(&mut stream, start_time);
             match check_result.check_error {
                 CheckError::FIN => {
                     println!("[FIN] {} connection duration time: {:?}-------",
@@ -67,17 +68,17 @@ pub fn start_client(addr_port: &str) {
                 CheckError::RESET => {
                     println!("[RESET] {} connection duration time: {:?}-------",
                              "miss addr", check_result.probe_time.unwrap_or(Default::default()));
-                    drop(stream); std::process::exit(0);;
+                    drop(stream); std::process::exit(0);
                 },
-                CheckError::EAGAIN | CheckError::Readed => {} // checking...
+                CheckError::EAGAIN | CheckError::Readed => {}, // checking...
                 CheckError::OtherErrno(e) => {
                     println!("[check] others errno error: {:?}", e);
-                    drop(stream); std::process::exit(0);;
-                }
+                    drop(stream); std::process::exit(0);
+                },
                 CheckError::ReadWriteError(e) => {
                     println!("[check] others read error: {:?}", e.kind());
-                    drop(stream); std::process::exit(0);;
-                }
+                    drop(stream); std::process::exit(0);
+                },
                 _ => {}
             }
 
@@ -96,7 +97,6 @@ pub fn start_client(addr_port: &str) {
     // let addr_port_c = addr_port.to_string();
     probe_timing_thread(addr_port, ctrl_probe_rt_clone, probe_st_clone, threads_lists_part1.len()+summary_time);
 
-    let threads_lists_copy = threads_lists.clone();
     // 定时，到时间以后通知
     let ctrl_sleep_rt_clone = ctrl_sleep_rt.clone();
     let ctrl_probe_st_clone = ctrl_probe_st.clone();
@@ -118,7 +118,7 @@ pub fn start_client(addr_port: &str) {
                 println!("[{}s] {:?} \x1b[40;32mhas alive\x1b[0m [EAGAIN]", probe_time, conn_elapsed_time);
                 has_probe_count += 1;
                 if has_probe_count >= threads_lists_length {
-                    ctrl_sleep_st.send(true);
+                    ctrl_sleep_st.send(true).unwrap();
                     println!("out probe time, the connection still alive. maybe never initiative disconnect."); // todo
                     std::process::exit(0);
                 }
@@ -136,15 +136,15 @@ pub fn start_client(addr_port: &str) {
                 println!("[{}s]: {:?} \x1b[31;40m[TIMEOUT]\x1b[0m some connection was killed!", probe_time, conn_elapsed_time);
                 // then do recycle probe but now exit;
             }
-            others => {
+            _ => {
                 println!("[{}]: {:?} probe check other error!", probe_time, conn_elapsed_time);
                 std::process::exit(0);}
         }
 
 
-        ctrl_probe_st.send(Signal::Terminated);
+        ctrl_probe_st.send(Signal::Terminated).unwrap();
         // anyway true or false
-        ctrl_sleep_st.send(true);
+        ctrl_sleep_st.send(true).unwrap();
 
         if stage_one {
             stage_one = false;
@@ -192,7 +192,7 @@ pub fn sleep_timing_thread(threads_lists: [u32; 255],ctrl_sleep_rt: Receiver<boo
     let sleep_probe_thread =  thread::spawn(move || {
         let mut thread_index = 0;
         loop {
-            if 0 <= thread_index && thread_index < threads_list_real_len  {
+            if 0usize <= thread_index && thread_index < threads_list_real_len  {
                 let mut target_sleep_time= 0u32;
                 if thread_index == 0 {
                     target_sleep_time = threads_lists[thread_index];
@@ -202,15 +202,15 @@ pub fn sleep_timing_thread(threads_lists: [u32; 255],ctrl_sleep_rt: Receiver<boo
                 thread::sleep(Duration::from_secs(target_sleep_time as u64));
                 // 醒来看看自己是否要终止。
                 if is_be_control && ctrl_sleep_rt.is_ready() {
-                    ctrl_sleep_rt.recv();
+                    ctrl_sleep_rt.recv().unwrap();
                     println!("sleep thread break");
                     break;  // Err(TryRecvError::Empty) => {}
                 }
                 // probe the connection
-                ctrl_probe_st.send(Signal::Run(target_sleep_time));
+                ctrl_probe_st.send(Signal::Run(target_sleep_time)).unwrap();
                 thread_index += 1;
             } else {
-                ctrl_sleep_rt.recv();
+                ctrl_sleep_rt.recv().unwrap();
                 println!("out probe time --> sleep thread exit;"); // todo
                 // std::process::exit(0);
                 return;
@@ -229,7 +229,7 @@ pub fn probe_timing_thread(addr_port: &str, ctrl_probe_rt: Receiver<Signal>, pro
         for thread_index in 1..=threads_lists_length {
             let mut stream = TcpStream::connect(&addr_port_string).expect("connection failed!");
             // stream.set_write_timeout(Some(Duration::new(5, 0)));
-            let (is_ok, e) = stream_rw_unit(&mut stream, false, thread_index);
+            let (is_ok, _) = stream_rw_unit(&mut stream, false, thread_index);
             if !is_ok {
                 println!("first read/wirte error, Exit");
                 drop(stream); return;
@@ -248,9 +248,9 @@ pub fn probe_timing_thread(addr_port: &str, ctrl_probe_rt: Receiver<Signal>, pro
                             probe_time += previous_probe_time;
                             previous_probe_time = probe_time;
                             // println!("{} {}", probe_time, previous_probe_time);
-                            let write_content = "heartbeat".as_bytes();
+                            let write_content = "heartbeat";
                             println!("[{}]------will probe------", thread_index);
-                            stream.set_write_timeout(Some(Duration::new(1, 0))); // 无效参数，仅仅针对本地写到缓存，而不是完整的链路
+                            stream.set_write_timeout(Some(Duration::new(1, 0))).unwrap(); // 无效参数，仅仅针对本地写到缓存，而不是完整的链路
                             // 根据平台区分
 
                             let tcp_user_timeout = 1u32; // 重传超时时间，不是次数，大概是发四次包的样子，0x18 tcp_user_timeout macos tcpxxx: 0x80
@@ -290,9 +290,7 @@ pub fn probe_timing_thread(addr_port: &str, ctrl_probe_rt: Receiver<Signal>, pro
                                 std::process::exit(1);
                             }
 
-
-
-                            match send(stream.as_raw_fd(), format!("[{}]one hello", thread_index).as_bytes(), MsgFlags::empty()) {
+                            match send(stream.as_raw_fd(), format!("[{}] {}", thread_index, write_content).as_bytes(), MsgFlags::empty()) {
                                 Ok(size) => {
                                     if size == 0 {
                                         println!("send --> closed[FIN]")
@@ -302,7 +300,8 @@ pub fn probe_timing_thread(addr_port: &str, ctrl_probe_rt: Receiver<Signal>, pro
                                 }
                                 Err(e) => {
                                     match e {
-                                        errno::Errno::EAGAIN | errno::Errno::EWOULDBLOCK => {
+                                        // errno::Errno::EAGAIN | errno::Errno::EWOULDBLOCK => {
+                                        errno::Errno::EAGAIN => {
                                             println!("operation would block, Try again, [EAGAIN]");
                                         }
                                         errno::Errno::ECONNRESET => {
@@ -338,7 +337,7 @@ pub fn probe_timing_thread(addr_port: &str, ctrl_probe_rt: Receiver<Signal>, pro
                                     Err(e) => {
 
                                         match e {
-                                            errno::Errno::EAGAIN | errno::Errno::EWOULDBLOCK => {
+                                            errno::Errno::EAGAIN => {
                                                 probe_st.send((CheckError::EAGAIN, probe_time,
                                                                std::time::Instant::now().duration_since(conn_start_time))).unwrap();
                                             }
@@ -350,7 +349,7 @@ pub fn probe_timing_thread(addr_port: &str, ctrl_probe_rt: Receiver<Signal>, pro
                                                 probe_st.send((CheckError::TimedOUT, probe_time,
                                                                std::time::Instant::now().duration_since(conn_start_time))).unwrap();
                                             }
-                                            others => {
+                                            _ => {
                                                 println!("[{}]: {:?} probe check other error!", thread_index, probe_time);
                                                 std::process::exit(0);}
                                         }

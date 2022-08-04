@@ -5,7 +5,7 @@ use crate::check_unit::{stream_rw_unit, check_unit};
 use std::str::FromStr;
 use crate::check_status::CheckError;
 
-use crossbeam_channel::{unbounded, RecvError, tick, Select, select};
+use crossbeam_channel::{unbounded, RecvError, tick, select};
 use std::io::Write;
 
 
@@ -39,7 +39,7 @@ pub fn start_server(addr_port: &str) {
     });
     for stream  in listener.incoming() {
         let mut stream: TcpStream = stream.unwrap();
-        st.send(true);
+        st.send(true).unwrap();
         let st_c = st.clone();
         thread::spawn(move || {
             if !stream_rw_unit(&mut stream, true,  0).0 { return; };
@@ -48,7 +48,7 @@ pub fn start_server(addr_port: &str) {
             let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
             loop {
                 thread::sleep(check_interval);
-                let check_result = check_unit(&mut stream, check_interval, start_time);
+                let check_result = check_unit(&mut stream, start_time);
                 match check_result.check_error {
                     CheckError::FIN => {
                         println!("[FIN] {} connection duration time: {:?}-------",
@@ -68,7 +68,7 @@ pub fn start_server(addr_port: &str) {
                     _ => { continue; }
                 }
                 drop(stream);
-                st_c.send(false);
+                st_c.send(false).unwrap();
                 return;
             }
 

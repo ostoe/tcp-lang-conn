@@ -1,31 +1,27 @@
 
-// extern crate core;
+//
+// use std::str::{from_utf8, FromStr};
+// use std::{thread, mem, os};
+// use std::time::{Duration, Instant};
+//
+// use nix::sys::socket::MsgFlags;
+// use nix::sys::socket::{recv, send, setsockopt as nix_setsockopt};
 
-use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, TcpStream};
-use std::io::{Read, Write};
-use std::str::{from_utf8, FromStr};
-use std::{thread, mem, os};
-use std::time::{Duration, Instant};
-
-use nix::sys::socket::MsgFlags;
-use nix::sys::socket::{recv, send, setsockopt as nix_setsockopt};
-
-use std::os::unix::io::{AsRawFd, RawFd};
-use nix::{errno, libc};
-use nix::errno::Errno::ETIMEDOUT;
-use libc::setsockopt;
-
-use std::sync::mpsc;
+// use std::os::unix::io::{AsRawFd, RawFd};
+// use nix::libc;
+// use libc::setsockopt;
+//
+// use std::sync::mpsc;
 #[cfg(target_family = "linux")]
 use nix::sys::socket::sockopt::{TcpUserTimeout, KeepAlive}; // 参考nix sockopt 跨平台用法，再不行就用macro
-use crate::Message::Probe;
-use std::ops::Sub;
-use std::thread::JoinHandle;
+// use crate::Message::Probe;
+// use std::ops::Sub;
+// use std::thread::JoinHandle;
 
 use tcp_lang_conn::client::start_client as start_client_lib;
 use tcp_lang_conn::server::start_server as start_server_lib;
 // use tcp_lang_conn::check_unit::check_loop;
-use tcp_lang_conn::check_status::{Message, WrapperMessage};
+// use tcp_lang_conn::check_status::{Message, WrapperMessage};
 // struct  Color {
 //     HEADER : '\033[95m',
 //     OKBLUE = '\033[94m',
@@ -68,7 +64,7 @@ fn main() {
                 }
             }
         }
-        default => {
+        _ => {
             println!("error param");
         }
     }
