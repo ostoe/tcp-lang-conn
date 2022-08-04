@@ -8,7 +8,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ccaaad69-d121-4669-9342-11ef0114ea8b" name="默认变更列表" comment="release v0.1">
+      <change afterPath="$PROJECT_DIR$/rust-version/src/check_status.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rust-version/src/check_unit.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rust-version/src/client.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rust-version/src/lib.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rust-version/src/server.rs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/rust-version/tcp-lang-conn.xmind" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-version/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-version/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/rust-version/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -67,7 +75,7 @@
       <recent name="$PROJECT_DIR$/src" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.client  -&gt;">
+  <component name="RunManager" selected="Cargo.server">
     <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
       <option name="arquillianRunConfiguration">
         <value>
@@ -205,7 +213,7 @@
       <workItem from="1658987714184" duration="16000" />
       <workItem from="1658988453322" duration="10302000" />
       <workItem from="1659177995944" duration="990000" />
-      <workItem from="1659320990419" duration="25959000" />
+      <workItem from="1659320990419" duration="63601000" />
     </task>
     <task id="LOCAL-00001" summary="release v0.1">
       <created>1650959304717</created>
@@ -340,7 +348,28 @@
       <option name="project" value="LOCAL" />
       <updated>1659351380812</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="fix println err">
+      <created>1659438389147</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1659438389147</updated>
+    </task>
+    <task id="LOCAL-00021" summary="fix println err">
+      <created>1659438435883</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1659438435883</updated>
+    </task>
+    <task id="LOCAL-00022" summary="fix println err">
+      <created>1659438517099</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1659438517099</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
