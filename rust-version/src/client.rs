@@ -30,7 +30,7 @@ pub fn start_client(addr_port: &str) {
     // 如果正常断开，比如15分钟，那么在某一时间段，30m 1h 2h 4h 8h 12h 18h 24h 28h 36h] 这些连接都能收到reset包正常断开。
     // 如果不能正常，就按照时间序列探测。
     let mut threads_lists = [0u32; 255];
-    let threads_lists_part1 = [15u32, 30, 2*60, 10*60];
+    let threads_lists_part1 = [15u32, 30, 5*60, 10*60];
     // todo
     for x in 0..threads_lists_part1.len() {
         threads_lists[x] = threads_lists_part1[x];
@@ -43,7 +43,7 @@ pub fn start_client(addr_port: &str) {
     //     12 * 3600, 18* 3600, 24 * 3600, 28 * 3600, 36 * 3600, 7200*3600];
         // .map(|t| Duration::from_secs(t));
 
-    let check_interval = Duration::from_millis(200);
+    let check_interval = Duration::from_millis(100);
     let addr_port_move = addr_port.to_string();
     let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
     // 正常检测
