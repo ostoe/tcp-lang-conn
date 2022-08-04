@@ -37,7 +37,7 @@ func MyTcpClient(str string, tint int) {
 
 	startTime := time.Now()
 	fmt.Println("Client Time:", startTime.String())
-	//go circlePrint("Client: ", 500)
+	go circlePrint("Client: ", 500)
 	go func() {
 		var str string
 		for {
@@ -53,8 +53,10 @@ func MyTcpClient(str string, tint int) {
 
 		for i := 1; i < 4; i++ {
 			fmt.Printf("try send: %dth times\n", i)
-			setError := conn.SetWriteDeadline(time.Now().Add(time.Millisecond * 1000));
-			if setError != nil {fmt.Println("setError", setError)}
+			setError := conn.SetWriteDeadline(time.Now().Add(time.Millisecond * 1000))
+			if setError != nil {
+				fmt.Println("setError", setError)
+			}
 			n, err2 := conn.Write([]byte(content))
 			if err2 == syscall.ETIMEDOUT {
 				fmt.Printf("send %dth error:%s %d\n", i, err2, n)

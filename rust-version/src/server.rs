@@ -5,14 +5,42 @@ use crate::check_unit::{stream_rw_unit, check_unit};
 use std::str::FromStr;
 use crate::check_status::CheckError;
 
+use crossbeam_channel::{unbounded, RecvError, tick, Select, select};
+use std::io::Write;
+
 
 pub fn start_server(addr_port: &str) {
     // addr
     let listener = TcpListener::bind(addr_port).expect("bind failed!");
     println!("Listener started");
-    let check_interval = Duration::from_millis(200);
+    let check_interval = Duration::from_millis(100);
+    let (st, rt) = unbounded::<bool>();
+    // count thread;
+    thread::spawn(move|| {
+        let ticker = tick(Duration::from_secs(1));
+        let mut not_release_tcpstream = 0u32;
+        let mut stdout = std::io::stdout();
+        loop {
+            select! {
+                recv(ticker) -> _ => {
+                    print!("\rcurrent connection: \x1b[40;32m{}\x1b[0m", not_release_tcpstream);
+                    stdout.flush().unwrap();
+                },
+                recv(rt) -> result => {
+                        match result {
+                    Ok(r) => {
+                        if r {not_release_tcpstream += 1;} else {not_release_tcpstream -= 1;}
+                    },
+                    Err(RecvError) => {break;}
+                    }
+                }
+            }
+        }
+    });
     for stream  in listener.incoming() {
         let mut stream: TcpStream = stream.unwrap();
+        st.send(true);
+        let st_c = st.clone();
         thread::spawn(move || {
             if !stream_rw_unit(&mut stream, true,  0).0 { return; };
             // thread::sleep(Duration::from_secs(5));
@@ -24,24 +52,24 @@ pub fn start_server(addr_port: &str) {
                 match check_result.check_error {
                     CheckError::FIN => {
                         println!("[FIN] {} connection duration time: {:?}-------",
-                                 check_result.addr.unwrap_or(default_addr), check_result.probe_time);
-                        drop(stream); return; },
+                                 check_result.addr.unwrap_or(default_addr), check_result.probe_time.unwrap_or(Default::default()));
+                    },
                     CheckError::RESET => {
                         println!("[RESET] {} connection duration time: {:?}-------",
-                                 "miss addr", check_result.probe_time);
-                        drop(stream); return;
+                                 "miss addr", check_result.probe_time.unwrap_or(Default::default()));
                     },
-                    CheckError::EAGAIN | CheckError::Readed => {} // checking...
+                    CheckError::EAGAIN | CheckError::Readed => {continue;} // checking...
                     CheckError::OtherErrno(e) => {
                         println!("[check] others errno error: {:?}", e);
-                        drop(stream); return;
                     }
                     CheckError::ReadWriteError(e) => {
                         println!("[check] others read error: {:?}", e.kind());
-                        drop(stream); return;
                     }
-                    _ => {}
+                    _ => { continue; }
                 }
+                drop(stream);
+                st_c.send(false);
+                return;
             }
 
         });

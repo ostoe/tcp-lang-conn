@@ -8,16 +8,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ccaaad69-d121-4669-9342-11ef0114ea8b" name="默认变更列表" comment="release v0.1">
-      <change afterPath="$PROJECT_DIR$/rust-version/src/check_status.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rust-version/src/check_unit.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rust-version/src/client.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rust-version/src/lib.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rust-version/src/server.rs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/rust-version/tcp-lang-conn.xmind" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-version/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-version/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-version/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-version/src/client.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/client.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-version/src/server.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/server.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,7 +81,7 @@
       </method>
     </configuration>
     <configuration name="client  -&gt;" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-      <option name="command" value="run --package tcp-lang-conn --bin tcp-lang-conn c 192.168.10.128:8008 " />
+      <option name="command" value="run --package tcp-lang-conn --bin tcp-lang-conn c 192.168.10.128:8003 " />
       <option name="workingDirectory" value="file://$PROJECT_DIR$/rust-version" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -213,7 +206,7 @@
       <workItem from="1658987714184" duration="16000" />
       <workItem from="1658988453322" duration="10302000" />
       <workItem from="1659177995944" duration="990000" />
-      <workItem from="1659320990419" duration="63601000" />
+      <workItem from="1659320990419" duration="81520000" />
     </task>
     <task id="LOCAL-00001" summary="release v0.1">
       <created>1650959304717</created>
@@ -369,7 +362,14 @@
       <option name="project" value="LOCAL" />
       <updated>1659438517099</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="fix println err">
+      <created>1659583349865</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1659583349865</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
