@@ -7,7 +7,10 @@
     <cargoProject FILE="$PROJECT_DIR$/rust-version/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ccaaad69-d121-4669-9342-11ef0114ea8b" name="默认变更列表" comment="release v0.1" />
+    <list default="true" id="ccaaad69-d121-4669-9342-11ef0114ea8b" name="默认变更列表" comment="release v0.1">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-version/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/Cargo.toml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -64,7 +67,7 @@
       <recent name="$PROJECT_DIR$/src" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.client  -&gt;">
+  <component name="RunManager" selected="Cargo.client">
     <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
       <option name="arquillianRunConfiguration">
         <value>
@@ -92,7 +95,7 @@
       </method>
     </configuration>
     <configuration name="client" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-      <option name="command" value="run --package tcp-lang-conn --bin tcp-lang-conn c 192.168.1.2:8008 " />
+      <option name="command" value="run --package tcp-lang-conn --bin tcp-lang-conn" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$/rust-version" />
       <option name="channel" value="DEFAULT" />
       <option name="requiredFeatures" value="true" />
@@ -202,7 +205,7 @@
       <workItem from="1658987714184" duration="16000" />
       <workItem from="1658988453322" duration="10302000" />
       <workItem from="1659177995944" duration="990000" />
-      <workItem from="1659320990419" duration="83873000" />
+      <workItem from="1659320990419" duration="85532000" />
     </task>
     <task id="LOCAL-00001" summary="release v0.1">
       <created>1650959304717</created>
@@ -379,7 +382,14 @@
       <option name="project" value="LOCAL" />
       <updated>1659608081455</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="fix println err">
+      <created>1659608370937</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1659608370937</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

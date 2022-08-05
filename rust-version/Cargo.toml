@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 socket2 = "0.4.4"
 libc = "0.2.126"
-nix = {version="0.24.1", feature = "net"}
+nix = {version="0.24.1"}
 crossbeam-channel = "0.5.6"
