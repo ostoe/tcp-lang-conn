@@ -5,7 +5,6 @@ use std::os::unix::io::AsRawFd;
 use std::io::{Read, Write};
 use nix::errno;
 use crate::check_status::{WrapperMessage, CheckError};
-use std::time::Duration;
 
 // 返回false，代表立即返回不继续执行！
 pub fn stream_rw_unit(stream: &mut TcpStream, is_server: bool, thread_index: usize) -> (bool, Option<CheckError>) {

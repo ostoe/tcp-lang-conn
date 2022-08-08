@@ -1,7 +1,5 @@
 use std::net::SocketAddr;
-use nix::errno;
 use std::time::Duration;
-use std::str::FromStr;
 use std::fmt::{Display, Formatter};
 
 // use std::fmt;

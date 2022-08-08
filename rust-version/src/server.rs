@@ -42,7 +42,7 @@ pub fn start_server(addr_port: &str) {
         st.send(true).unwrap();
         let st_c = st.clone();
         thread::spawn(move || {
-            if !stream_rw_unit(&mut stream, true,  0).0 { st_c.send(false).unwrap();; return; };
+            if !stream_rw_unit(&mut stream, true,  0).0 { st_c.send(false).unwrap(); return; };
             // thread::sleep(Duration::from_secs(5));
             let start_time = std::time::Instant::now();
             let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();

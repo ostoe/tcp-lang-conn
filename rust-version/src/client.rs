@@ -192,8 +192,9 @@ pub fn sleep_timing_thread(threads_lists: [u32; 255],ctrl_sleep_rt: Receiver<boo
     let sleep_probe_thread =  thread::spawn(move || {
         let mut thread_index = 0;
         loop {
-            if 0usize <= thread_index && thread_index < threads_list_real_len  {
-                let mut target_sleep_time= 0u32;
+             // 0usize <= thread_index <---- comparison is useless due to type limits
+            if  thread_index < threads_list_real_len  {
+                let target_sleep_time;
                 if thread_index == 0 {
                     target_sleep_time = threads_lists[thread_index];
                 } else {
