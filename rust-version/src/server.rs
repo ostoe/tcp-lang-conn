@@ -17,7 +17,7 @@ pub fn start_server(addr_port: &str) {
     let (st, rt) = unbounded::<bool>();
     // count thread;
     thread::spawn(move|| {
-        let ticker = tick(Duration::from_secs(1));
+        let ticker = tick(Duration::from_millis(100));
         let mut not_release_tcpstream = 0u32;
         let mut stdout = std::io::stdout();
         loop {
@@ -42,7 +42,7 @@ pub fn start_server(addr_port: &str) {
         st.send(true).unwrap();
         let st_c = st.clone();
         thread::spawn(move || {
-            if !stream_rw_unit(&mut stream, true,  0).0 { return; };
+            if !stream_rw_unit(&mut stream, true,  0).0 { st_c.send(false).unwrap();; return; };
             // thread::sleep(Duration::from_secs(5));
             let start_time = std::time::Instant::now();
             let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
@@ -65,7 +65,7 @@ pub fn start_server(addr_port: &str) {
                     CheckError::ReadWriteError(e) => {
                         println!("[check] others read error: {:?}", e.kind());
                     }
-                    _ => { continue; }
+                    _x => { println!("____");continue; }
                 }
                 drop(stream);
                 st_c.send(false).unwrap();

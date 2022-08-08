@@ -5,6 +5,7 @@ use std::os::unix::io::AsRawFd;
 use std::io::{Read, Write};
 use nix::errno;
 use crate::check_status::{WrapperMessage, CheckError};
+use std::time::Duration;
 
 // 返回false，代表立即返回不继续执行！
 pub fn stream_rw_unit(stream: &mut TcpStream, is_server: bool, thread_index: usize) -> (bool, Option<CheckError>) {
@@ -17,6 +18,7 @@ pub fn stream_rw_unit(stream: &mut TcpStream, is_server: bool, thread_index: usi
     }
     for x in sequence_is_read_for_server {
         if x {
+            // stream.set_read_timeout(Some(Duration::from_secs(1)));
             match stream.read(&mut buf) {
                 Ok(size) => {
                     if size != 0 {
@@ -27,6 +29,7 @@ pub fn stream_rw_unit(stream: &mut TcpStream, is_server: bool, thread_index: usi
                     }
                 }
                 Err(e) => {
+                    println!("{:?}", e.kind());
                     return (false, Some(CheckError::ReadWriteError(e)));
                     // println!("first read error:{}", e.kind());
                 }
