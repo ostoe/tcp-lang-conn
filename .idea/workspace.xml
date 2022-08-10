@@ -9,9 +9,6 @@
   <component name="ChangeListManager">
     <list default="true" id="ccaaad69-d121-4669-9342-11ef0114ea8b" name="默认变更列表" comment="release v0.1">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-version/src/check_status.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/check_status.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-version/src/check_unit.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/check_unit.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rust-version/src/server.rs" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/src/server.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -207,7 +204,7 @@
       <workItem from="1658987714184" duration="16000" />
       <workItem from="1658988453322" duration="10302000" />
       <workItem from="1659177995944" duration="990000" />
-      <workItem from="1659320990419" duration="91177000" />
+      <workItem from="1659320990419" duration="93005000" />
     </task>
     <task id="LOCAL-00001" summary="release v0.1">
       <created>1650959304717</created>
@@ -398,7 +395,21 @@
       <option name="project" value="LOCAL" />
       <updated>1659693129247</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="fix not custom connection count...">
+      <created>1659944173061</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1659944173062</updated>
+    </task>
+    <task id="LOCAL-00029" summary="fix warnning">
+      <created>1659944462339</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1659944462339</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -423,7 +434,9 @@
     <MESSAGE value="fix color" />
     <MESSAGE value="fix println" />
     <MESSAGE value="fix println err" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix println err" />
+    <MESSAGE value="fix not custom connection count..." />
+    <MESSAGE value="fix warnning" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix warnning" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>
