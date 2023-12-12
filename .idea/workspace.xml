@@ -8,7 +8,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ccaaad69-d121-4669-9342-11ef0114ea8b" name="默认变更列表" comment="release v0.1">
+      <change beforePath="$PROJECT_DIR$/.idea/tcp-lang-conn.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/tcp-lang-conn.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rust-version/tcp-lang-conn.xmind" beforeDir="false" afterPath="$PROJECT_DIR$/rust-version/tcp-lang-conn.xmind" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,16 +50,20 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">
-    <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="aspect.path.notification.shown" value="true" />
-    <property name="go.import.settings.migrated" value="true" />
-    <property name="nodejs_package_manager_path" value="npm" />
-    <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
-    <property name="project.structure.last.edited" value="项目" />
-    <property name="project.structure.proportion" value="0.0" />
-    <property name="project.structure.side.proportion" value="0.2" />
-  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "go.import.settings.migrated": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "settings.editor.selected.configurable": "actions.on.save",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/go-version" />
@@ -67,17 +73,6 @@
     </key>
   </component>
   <component name="RunManager" selected="Cargo.server">
-    <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
-      <option name="arquillianRunConfiguration">
-        <value>
-          <option name="containerStateName" value="" />
-        </value>
-      </option>
-      <option name="TEST_OBJECT" value="class" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="client  -&gt;" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="command" value="run --package tcp-lang-conn --bin tcp-lang-conn c 192.168.10.128:8003 " />
       <option name="workingDirectory" value="file://$PROJECT_DIR$/rust-version" />
@@ -85,6 +80,8 @@
       <option name="requiredFeatures" value="true" />
       <option name="allFeatures" value="false" />
       <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
       <option name="backtrace" value="SHORT" />
       <envs />
       <option name="isRedirectInput" value="false" />
@@ -100,6 +97,8 @@
       <option name="requiredFeatures" value="true" />
       <option name="allFeatures" value="false" />
       <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
       <option name="backtrace" value="SHORT" />
       <envs />
       <option name="isRedirectInput" value="false" />
@@ -115,6 +114,8 @@
       <option name="requiredFeatures" value="true" />
       <option name="allFeatures" value="false" />
       <option name="emulateTerminal" value="false" />
+      <option name="withSudo" value="false" />
+      <option name="buildTarget" value="REMOTE" />
       <option name="backtrace" value="SHORT" />
       <envs />
       <option name="isRedirectInput" value="false" />
@@ -128,8 +129,8 @@
       <working_directory value="$PROJECT_DIR$" />
       <parameters value="c 192.168.10.128:8001" />
       <kind value="FILE" />
-      <filePath value="$PROJECT_DIR$/main.go" />
       <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/main.go" />
       <output_directory value="$PROJECT_DIR$/" />
       <method v="2" />
     </configuration>
@@ -138,8 +139,8 @@
       <working_directory value="$PROJECT_DIR$" />
       <parameters value="s 0.0.0.0:8001" />
       <kind value="FILE" />
-      <filePath value="$PROJECT_DIR$/main.go" />
       <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/main.go" />
       <output_directory value="$PROJECT_DIR$/" />
       <method v="2" />
     </configuration>
@@ -147,18 +148,18 @@
       <module name="tcp-lang-conn" />
       <working_directory value="$PROJECT_DIR$/go-version" />
       <kind value="PACKAGE" />
-      <filePath value="$PROJECT_DIR$/go-version/main.go" />
       <package value="tcp-lang-conn" />
       <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/go-version/main.go" />
       <method v="2" />
     </configuration>
     <configuration name="go build tcp-lang-conn" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="go-version" />
       <working_directory value="$PROJECT_DIR$/go-version" />
       <kind value="PACKAGE" />
-      <filePath value="$PROJECT_DIR$/go-version/main.go" />
       <package value="tcp-lang-conn" />
       <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/go-version/main.go" />
       <method v="2" />
     </configuration>
     <list>
@@ -172,6 +173,10 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Go 构建.go build tcp-lang-conn" />
+        <item itemvalue="Go 构建.go build tcp-lang-conn (1)" />
+        <item itemvalue="Go 构建.go build Server" />
+        <item itemvalue="Go 构建.go build Client" />
         <item itemvalue="Cargo.server" />
       </list>
     </recent_temporary>
@@ -204,7 +209,11 @@
       <workItem from="1658987714184" duration="16000" />
       <workItem from="1658988453322" duration="10302000" />
       <workItem from="1659177995944" duration="990000" />
-      <workItem from="1659320990419" duration="93005000" />
+      <workItem from="1659320990419" duration="93201000" />
+      <workItem from="1662516929181" duration="1331000" />
+      <workItem from="1663139887301" duration="10000" />
+      <workItem from="1665716102953" duration="20000" />
+      <workItem from="1702009378251" duration="845000" />
     </task>
     <task id="LOCAL-00001" summary="release v0.1">
       <created>1650959304717</created>
@@ -409,7 +418,14 @@
       <option name="project" value="LOCAL" />
       <updated>1659944462339</updated>
     </task>
-    <option name="localTasksCounter" value="30" />
+    <task id="LOCAL-00030" summary="fix warnning">
+      <created>1660118170595</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1660118170595</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -425,7 +441,6 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="u1" />
@@ -439,7 +454,7 @@
     <option name="LAST_COMMIT_MESSAGE" value="fix warnning" />
   </component>
   <component name="VgoProject">
-    <integration-enabled>true</integration-enabled>
+    <settings-migrated>true</settings-migrated>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

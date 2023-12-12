@@ -46,7 +46,7 @@ pub fn start_client(addr_port: &str) {
     let check_interval = Duration::from_millis(100);
     let addr_port_move = addr_port.to_string();
     let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
-    // 正常检测
+    // 正常检测，只能检测linux自己的状态，无法检测链路本身
     thread::spawn(move || {
         let mut stream = TcpStream::connect(addr_port_move).expect("connection failed!");
         // stream.set_write_timeout(Some(Duration::new(5, 0)));
@@ -93,14 +93,14 @@ pub fn start_client(addr_port: &str) {
     // probe list
     let ctrl_probe_rt_clone = ctrl_probe_rt.clone();
     let probe_st_clone = probe_st.clone();
-    // 启动probe线程
+    // 启动probe线程，建立很多链接，但是不做操作，等待控制线程发命令
     // let addr_port_c = addr_port.to_string();
     probe_timing_thread(addr_port, ctrl_probe_rt_clone, probe_st_clone, threads_lists_part1.len()+summary_time);
 
     // 定时，到时间以后通知
     let ctrl_sleep_rt_clone = ctrl_sleep_rt.clone();
     let ctrl_probe_st_clone = ctrl_probe_st.clone();
-    // ------------------------ sleep thread
+    // ------------------------ sleep thread，过一段时间发一个消息给探测线程，让探测线程发过去
     sleep_timing_thread(threads_lists, ctrl_sleep_rt_clone, ctrl_probe_st_clone, threads_lists_part1.len()+summary_time, true);
     // 起一个沉睡线程////
     // let ticker = tick(Duration::from_secs(1));
@@ -319,7 +319,7 @@ pub fn probe_timing_thread(addr_port: &str, ctrl_probe_rt: Receiver<Signal>, pro
                             println!("[{}]-----check after probe----", thread_index);
 
                             thread::sleep(Duration::from_secs(3));
-                            // 如果检测时，tcp孩子重试，则此处的错误为：EAGAIN！！！所以一定要确保检测时，已经重试完毕。
+                            // 如果检测时，tcp还在重试，则此处的错误为：EAGAIN！！！所以一定要确保检测时，已经重试完毕。
                             // 从抓包情况来看，重试的完如果不同系统就直接发reset包，而程序结束时发[FIN]包，
                             // 至于先发reset还是[FIN]，如果正常通信的情况下，互相发完fin，就完了，不会发reset包。
                             // 非正常情况，程序的fin和系统的reset各发各的，互不影响。但是先发reset就不发fin了，反过来不成立
