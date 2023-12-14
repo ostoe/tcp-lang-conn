@@ -29,7 +29,7 @@ pub fn start_client(addr_port: &str) {
     // 起多个线程，做线程序列，[ 5min 10min 15m 30m 1h 2h 4h 8h 12h 18h 24h 28h 36h]
     // 如果正常断开，比如15分钟，那么在某一时间段，30m 1h 2h 4h 8h 12h 18h 24h 28h 36h] 这些连接都能收到reset包正常断开。
     // 如果不能正常，就按照时间序列探测。
-    let mut threads_lists = [0u32; 255];
+    let mut threads_lists = [0u32; 4096];
     let threads_lists_part1 = [15u32, 30, 5*60, 10*60];
     // todo
     for x in 0..threads_lists_part1.len() {
@@ -39,6 +39,7 @@ pub fn start_client(addr_port: &str) {
     for x in 0..summary_time {
         threads_lists[x + threads_lists_part1.len()] = ((x + 1) as u32) * 3600;
     }
+    // println!("{:?}", threads_lists);
     // let threads_lists = [15, 5u32*60, 10*60, 15*60, 30*60, 1*3600, 2*3600, 3*3600, 4*3600, 5*3600, 6*3600, 7*3600, 8* 3600,
     //     12 * 3600, 18* 3600, 24 * 3600, 28 * 3600, 36 * 3600, 7200*3600];
         // .map(|t| Duration::from_secs(t));
@@ -46,7 +47,7 @@ pub fn start_client(addr_port: &str) {
     let check_interval = Duration::from_millis(100);
     let addr_port_move = addr_port.to_string();
     let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
-    // 正常检测，只能检测linux自己的状态，无法检测链路本身
+    // 正常检测，只能检测linux链接自己的状态,和链路正常的状态
     thread::spawn(move || {
         let mut stream = TcpStream::connect(addr_port_move).expect("connection failed!");
         // stream.set_write_timeout(Some(Duration::new(5, 0)));
@@ -87,7 +88,7 @@ pub fn start_client(addr_port: &str) {
         }
     });
 
-
+    // 发送和接受信号，信号包含探测周期信号
     let (ctrl_probe_st, ctrl_probe_rt) = unbounded::<Signal>();
     let (ctrl_sleep_thread_exit_st, ctrl_sleep_rt) = bounded::<bool>(2);
     let (result_probe_st, result_probe_rt) = unbounded::<(CheckError, u32, Duration)>();
@@ -150,9 +151,10 @@ pub fn start_client(addr_port: &str) {
         ctrl_sleep_thread_exit_st.send(true).unwrap();
         // 第一轮探测探测一个范围，第二轮探测更细颗粒度（60s）的断链时长
         if stage_one {
+            println!("ffff");
             stage_one = false;
             has_probe_count = 0;
-            // todo recycle probe but not exit;
+            // todo recycle probe  not exit;
             let index_element = threads_lists
                 .iter()
                 .position(|&x| x == probe_time)
@@ -165,7 +167,7 @@ pub fn start_client(addr_port: &str) {
                 let a_time: u32 = threads_lists[index_element-1];
                 let b_time: u32 = threads_lists[index_element];
                 // send 第二轮探测
-                let mut threads_lists: [u32; 255] = [0;255];
+                let mut threads_lists: [u32; 4096] = [0;4096];
                 threads_lists_length = ((b_time-a_time)/60 + 1) as usize;
                 for x in 0..threads_lists_length {
                     threads_lists[x] = a_time + 60 * (x as u32 );
@@ -347,7 +349,7 @@ pub fn probe_timing_thread(addr_port: &str, ctrl_probe_rt: Receiver<Signal>, res
                                 match recv(stream.as_raw_fd(), &mut peek_buf, MsgFlags::MSG_PEEK | MsgFlags::MSG_DONTWAIT) {
                                     Ok(size) => {
                                         if size == 0 {
-                                            println!("check closed[FIN]")
+                                            println!("check nv run closed[FIN]")
                                         } else {
                                             println!("check peek:{}, everything is ok.", size); // 发送Ping后，有回包，即运行到此处
                                         }
