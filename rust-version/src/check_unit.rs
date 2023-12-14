@@ -8,7 +8,7 @@ use crate::check_status::{WrapperMessage, CheckError};
 
 // 返回false，代表立即返回不继续执行！
 pub fn stream_rw_unit(stream: &mut TcpStream, is_server: bool, thread_index: usize) -> (bool, Option<CheckError>) {
-    let mut buf = [0u8; 1024];
+    let mut buf = [0u8; 10];
     let mut sequence_is_read_for_server = [true, false];
     let mut send_content= "Server hello".to_string();
     if !is_server {
@@ -93,7 +93,7 @@ pub(crate) fn check_unit(stream: &mut TcpStream,  start_time: std::time::Instant
                     Err(e) => {
                         return WrapperMessage{
                             addr: stream.peer_addr(),
-                            content: "-------reached EOF, maybe[FIN]".to_string(),
+                            content: "-------reached EOF, maybe[?]".to_string(),
                             thread_index: None,
                             probe_time: Some(duration_time),
                             check_error: CheckError::ReadWriteError(e) };
@@ -117,7 +117,7 @@ pub(crate) fn check_unit(stream: &mut TcpStream,  start_time: std::time::Instant
                     let duration_time = std::time::Instant::now().duration_since(start_time);
                     return WrapperMessage{
                         addr: stream.peer_addr(),
-                        content: "-------reached EOF, maybe[FIN]".to_string(),
+                        content: "-------reached EOF, maybe[RESET]".to_string(),
                         thread_index: None,
                         probe_time: Some(duration_time),
                         check_error: CheckError::RESET };
