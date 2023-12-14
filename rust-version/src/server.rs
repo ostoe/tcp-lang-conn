@@ -1,8 +1,8 @@
-use std::net::{TcpListener, SocketAddr, TcpStream};
+use std::net::{TcpListener, TcpStream, SocketAddr};
+use std::str::FromStr;
 use std::time::Duration;
 use std::thread;
 use crate::check_unit::{stream_rw_unit, check_unit};
-use std::str::FromStr;
 use crate::check_status::CheckError;
 
 use crossbeam_channel::{unbounded, RecvError, tick, select};
@@ -43,19 +43,20 @@ pub fn start_server(addr_port: &str) { // -> Result<(), Box<dyn std::error::Erro
         let st_c = st.clone();
         thread::spawn(move || {
             // first
+            let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
+            let addr = stream.peer_addr().unwrap_or(default_addr);
             if !stream_rw_unit(&mut stream, true,  0).0 {
                  st_c.send(false).unwrap(); return; 
             };
             // thread::sleep(Duration::from_secs(5));
             let start_time = std::time::Instant::now();
-            let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
             loop {
                 thread::sleep(check_interval);
                 let check_result = check_unit(&mut stream, start_time);
                 match check_result.check_error {
                     CheckError::FIN => {
                         println!("[FIN] {} connection duration time: {:?}-------",
-                                 check_result.addr.unwrap_or(default_addr), check_result.probe_time.unwrap_or(Default::default()));
+                                 addr, check_result.probe_time.unwrap_or(Default::default()));
                     },
                     CheckError::RESET => {
                         println!("[RESET] {} connection duration time: {:?}-------",

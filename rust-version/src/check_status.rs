@@ -1,4 +1,3 @@
-use std::net::SocketAddr;
 use std::time::Duration;
 use std::fmt::{Display, Formatter};
 
@@ -34,7 +33,7 @@ impl Display for CheckError {
 
 // #[derive(Default)]
 pub struct  WrapperMessage {
-    pub addr: std::io::Result<SocketAddr>,
+    // pub addr:  SocketAddr,//std::io::Result<SocketAddr>,
     pub content: String,
     pub thread_index: Option<usize>,
     pub probe_time: Option<Duration>,

@@ -17,7 +17,7 @@ use nix::sys::socket::sockopt::{KeepAlive, TcpUserTimeout}; // 参考nix sockopt
                                                             // use std::ops::Sub;
                                                             // use std::thread::JoinHandle;
 
-use tcp_lang_conn::async_server::start_async_server;
+// use tcp_lang_conn::async_server::start_async_server;
 use tcp_lang_conn::client::start_client as start_client_lib;
 // use tcp_lang_conn::check_unit::check_loop;
 // use tcp_lang_conn::check_status::{Message, WrapperMessage};
@@ -44,7 +44,7 @@ fn main() {
                 "Example: ",
                 "1. Server(192.168.1.1) start:    ./connTest s 0.0.0.0:8001",
                 "2. Client(192.168.1.2) start:    ./connTest c 192.168.1.1:8001",
-                "version 2022-08-16"
+                "version 2023-12-12"
             );
         }
         3 => {
@@ -52,14 +52,14 @@ fn main() {
                 "s" | "S" => {
                     // todo check "0.0.0.0:8001"
                     // #[tokio::main]
-                    // start_server_lib(args[2].as_str());
+                    // tcp_lang_conn::server::start_server(args[2].as_str());
 
                     tokio::runtime::Builder::new_multi_thread()
                         .enable_all()
                         .build()
                         .unwrap()
                         .block_on(async {
-                            let _ = start_async_server(args[2].as_str()).await;
+                            let _ = tcp_lang_conn::async_server::start_async_server(args[2].as_str()).await;
                         })
                 }
                 "c" | "C" => {

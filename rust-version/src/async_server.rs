@@ -1,7 +1,6 @@
 use crate::async_check_unit;
 use crate::check_status::CheckError;
-use std::net::SocketAddr;
-use std::str::{FromStr, from_utf8};
+use std::str::{ from_utf8, FromStr};
 use std::time::Duration;
 
 use std::io::Write;
@@ -47,6 +46,8 @@ pub async fn start_async_server(addr_port: &str) -> std::io::Result<()> {
         }
         let stream_count_tx_c = stream_count_tx.clone();
         tokio::spawn(async move  {
+            let default_addr =  std::net::SocketAddr::from_str("127.0.0.0:8001").unwrap();
+            let addr = stream.peer_addr().unwrap_or(default_addr);
             // new connection: rev Ping Send Pong
             let mut buf = [0u8; 1024];
             // let n = stream.read(&mut buf).await;
@@ -54,7 +55,7 @@ pub async fn start_async_server(addr_port: &str) -> std::io::Result<()> {
             match stream.read(&mut buf).await {
                 Ok(size) => {
                     if size != 0 {
-                        println!("recv: {}", from_utf8(&buf[..size]).unwrap_or_default());
+                        print!("<<< {} | ", from_utf8(&buf[..size]).unwrap_or_default());
                     } else {
                         println!("read closed. reached EOF, maybe[FIN]");
                         return
@@ -68,20 +69,19 @@ pub async fn start_async_server(addr_port: &str) -> std::io::Result<()> {
             // writer.write(&"Pong".as_bytes()).await;
             // let bytes_copied = tokio::io::copy("P", writer);
             
-            match stream.write("Pong".as_bytes()).await {
+            match stream.write("Server Hello".as_bytes()).await {
                 Ok(_) => {
-                    println!("write back.")
+                    println!("{} >>>", "Server Hello")
                 }
                 Err(e) => {
                     println!("first write error:{}", e.kind());
                     return
                 }
             }
-            stream_count_tx_c.send(false).await.unwrap();
+            // stream_count_tx_c.send(false).await.unwrap();
             
             // thread::sleep(Duration::from_secs(5));
             let start_time = std::time::Instant::now();
-            let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
             loop {
                 tokio::time::interval(Duration::from_millis(300)).tick().await;
                 // thread::sleep(check_interval);
@@ -90,14 +90,14 @@ pub async fn start_async_server(addr_port: &str) -> std::io::Result<()> {
                     CheckError::FIN => {
                         println!(
                             "[FIN] {} connection duration time: {:?}-------",
-                            check_result.addr.unwrap_or(default_addr),
+                            addr,
                             check_result.probe_time.unwrap_or(Default::default())
                         );
                     }
                     CheckError::RESET => {
                         println!(
                             "[RESET] {} connection duration time: {:?}-------",
-                            "miss addr",
+                            addr,
                             check_result.probe_time.unwrap_or(Default::default())
                         );
                     }

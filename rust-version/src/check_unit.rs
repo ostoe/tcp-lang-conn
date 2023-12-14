@@ -8,12 +8,12 @@ use crate::check_status::{WrapperMessage, CheckError};
 
 // 返回false，代表立即返回不继续执行！
 pub fn stream_rw_unit(stream: &mut TcpStream, is_server: bool, thread_index: usize) -> (bool, Option<CheckError>) {
-    let mut buf = [0u8; 10];
+    let mut buf = [0u8; 1024];
     let mut sequence_is_read_for_server = [true, false];
     let mut send_content= "Server hello".to_string();
     if !is_server {
         sequence_is_read_for_server = [false, true];
-        send_content = format!("[{}]Client hello", thread_index);
+        send_content = format!("[{}] Client hello", thread_index);
     }
     for x in sequence_is_read_for_server {
         if x {
@@ -21,7 +21,7 @@ pub fn stream_rw_unit(stream: &mut TcpStream, is_server: bool, thread_index: usi
             match stream.read(&mut buf) {
                 Ok(size) => {
                     if size != 0 {
-                        println!("recv: {}", from_utf8(&buf[..size]).unwrap_or_default());
+                        println!("<<< {}", from_utf8(&buf[..size]).unwrap_or_default());
                     } else {
                         return (false, Some(CheckError::FIN));
                         // ("read closed. reached EOF, maybe[FIN]");
@@ -37,7 +37,7 @@ pub fn stream_rw_unit(stream: &mut TcpStream, is_server: bool, thread_index: usi
             // write back to clint: Server hello;
             match stream.write(send_content.as_ref()) {
                 Ok(_) => {
-                    println!("write back.")
+                    print!("[New]{}>>> | ", send_content)
                 }
                 Err(e) => {
                     return (false, Some(CheckError::ReadWriteError(e)));
@@ -52,15 +52,15 @@ pub fn stream_rw_unit(stream: &mut TcpStream, is_server: bool, thread_index: usi
 
 pub(crate) fn check_unit(stream: &mut TcpStream,  start_time: std::time::Instant) -> WrapperMessage {
     let mut buf:[u8;1024] = [0;1024];
-    let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
     let mut peek_buf = [0u8; 1];
+    let default_addr = SocketAddr::from_str("127.0.0.0:8001").unwrap();
+    let addr = stream.peer_addr().unwrap_or(default_addr);
     match  recv(stream.as_raw_fd(), &mut peek_buf, MsgFlags::MSG_PEEK | MsgFlags::MSG_DONTWAIT ) {
         Ok(size) => {
             let duration_time = std::time::Instant::now().duration_since(start_time);
             if size == 0 {
                 // println!("[{:?}] closed[FIN]", stream.peer_addr());
                 return WrapperMessage{
-                    addr: stream.peer_addr(),
                     content: "".to_string(),
                     thread_index: None,
                     probe_time: Some(duration_time),
@@ -73,17 +73,15 @@ pub(crate) fn check_unit(stream: &mut TcpStream,  start_time: std::time::Instant
 
                     Ok(size) => {
                         if size != 0 {
-                            println!("recv from: {}: {}",stream.peer_addr().unwrap_or(default_addr).to_string(),
+                            println!("recv from: {}: {}", addr.to_string(),
                                      from_utf8(&buf[..size]).unwrap_or_default());
                             return WrapperMessage{
-                                addr: stream.peer_addr(),
                                 content: "".to_string(),
                                 thread_index: None,
                                 probe_time: Some(duration_time),
                                 check_error: CheckError::Readed };
                         } else {
                             return WrapperMessage{
-                                addr: stream.peer_addr(),
                                 content: "-------reached EOF, maybe[FIN]".to_string(),
                                 thread_index: None,
                                 probe_time: Some(duration_time),
@@ -92,7 +90,6 @@ pub(crate) fn check_unit(stream: &mut TcpStream,  start_time: std::time::Instant
                     }
                     Err(e) => {
                         return WrapperMessage{
-                            addr: stream.peer_addr(),
                             content: "-------reached EOF, maybe[?]".to_string(),
                             thread_index: None,
                             probe_time: Some(duration_time),
@@ -107,7 +104,6 @@ pub(crate) fn check_unit(stream: &mut TcpStream,  start_time: std::time::Instant
             match e {
                 errno::Errno::EAGAIN  => {
                     return WrapperMessage{
-                        addr: stream.peer_addr(),
                         content: "".to_string(),
                         thread_index: None,
                         probe_time: None,
@@ -116,7 +112,6 @@ pub(crate) fn check_unit(stream: &mut TcpStream,  start_time: std::time::Instant
                 errno::Errno::ECONNRESET => {
                     let duration_time = std::time::Instant::now().duration_since(start_time);
                     return WrapperMessage{
-                        addr: stream.peer_addr(),
                         content: "-------reached EOF, maybe[RESET]".to_string(),
                         thread_index: None,
                         probe_time: Some(duration_time),
@@ -124,7 +119,6 @@ pub(crate) fn check_unit(stream: &mut TcpStream,  start_time: std::time::Instant
                 }
                 others => {
                     return WrapperMessage{
-                        addr: stream.peer_addr(),
                         content: "-------reached EOF, maybe[FIN]".to_string(),
                         thread_index: None,
                         probe_time: Some(duration_time),
