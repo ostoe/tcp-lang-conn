@@ -1,4 +1,3 @@
-
 //
 // use std::str::{from_utf8, FromStr};
 // use std::{thread, mem, os};
@@ -13,13 +12,13 @@
 //
 // use std::sync::mpsc;
 #[cfg(target_family = "linux")]
-use nix::sys::socket::sockopt::{TcpUserTimeout, KeepAlive}; // 参考nix sockopt 跨平台用法，再不行就用macro
-// use crate::Message::Probe;
-// use std::ops::Sub;
-// use std::thread::JoinHandle;
+use nix::sys::socket::sockopt::{KeepAlive, TcpUserTimeout}; // 参考nix sockopt 跨平台用法，再不行就用macro
+                                                            // use crate::Message::Probe;
+                                                            // use std::ops::Sub;
+                                                            // use std::thread::JoinHandle;
 
+use tcp_lang_conn::async_server::start_async_server;
 use tcp_lang_conn::client::start_client as start_client_lib;
-use tcp_lang_conn::server::start_server as start_server_lib;
 // use tcp_lang_conn::check_unit::check_loop;
 // use tcp_lang_conn::check_status::{Message, WrapperMessage};
 // struct  Color {
@@ -34,24 +33,34 @@ use tcp_lang_conn::server::start_server as start_server_lib;
 //     UNDERLINE = '\033[4m'
 // }
 
-
 fn main() {
     let args: Vec<String> = std::env::args().collect();
     // todo 引用计数 显示所有thread数
     match args.len() {
         1..=2 => {
             // todo
-            println!("Usage: ./connTest [s|c] [ip_address:port]\n{}{}{}",
-                "Example: \n",
-                "1. Server(192.168.1.1) start:    ./connTest s 0.0.0.0:8001\n",
-                "2. Client(192.168.1.2) start:    ./connTest c 192.168.1.1:8001");
+            println!(
+                "Usage: ./connTest [s|c] [ip_address:port]\n{}\n{}\n{}\n{}",
+                "Example: ",
+                "1. Server(192.168.1.1) start:    ./connTest s 0.0.0.0:8001",
+                "2. Client(192.168.1.2) start:    ./connTest c 192.168.1.1:8001",
+                "version 2022-08-16"
+            );
         }
         3 => {
             match args[1].as_str() {
-                "s"|"S" => {
+                "s" | "S" => {
                     // todo check "0.0.0.0:8001"
-                    start_server_lib(args[2].as_str());
+                    // #[tokio::main]
+                    // start_server_lib(args[2].as_str());
 
+                    tokio::runtime::Builder::new_multi_thread()
+                        .enable_all()
+                        .build()
+                        .unwrap()
+                        .block_on(async {
+                            let _ = start_async_server(args[2].as_str()).await;
+                        })
                 }
                 "c" | "C" => {
                     // todo check "192.3.2.1:8001"
@@ -291,5 +300,3 @@ fn main() {
 //     }
 //
 // }
-
-
