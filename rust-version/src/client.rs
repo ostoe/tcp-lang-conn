@@ -476,10 +476,10 @@ pub fn probe_timing_thread(
                                             ))
                                             .unwrap();
                                     }
-                                    _ => {
+                                    e => {
                                         println!(
-                                            "[{}]: {:?} probe check other error!",
-                                            stream_index, current_probe_time
+                                            "[{}]: {:?} probe check other error!{}",
+                                            stream_index, current_probe_time, e
                                         );
                                         std::process::exit(0);
                                     }
