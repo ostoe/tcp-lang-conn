@@ -3,16 +3,16 @@ use crate::check_unit::{check_unit, stream_rw_unit};
 use crossbeam_channel::{bounded, select, unbounded, Receiver, Sender};
 use libc::setsockopt;
 use nix::errno;
-#[cfg(target_family = "linux")]
+#[cfg(target_os = "linux")]
 use nix::sys::socket::setsockopt as nix_setsockopt;
-#[cfg(target_family = "linux")]
+#[cfg(target_os = "linux")]
 use nix::sys::socket::sockopt::{KeepAlive, TcpUserTimeout};
 use nix::sys::socket::{recv, send, MsgFlags};
-use std::io::Read;
+// use std::io::Read;
 use std::net::TcpStream;
 use std::os::raw::{c_int, c_void};
 use std::os::unix::io::AsRawFd;
-use std::str::{FromStr, from_utf8};
+use std::str::{FromStr};
 use std::time::{Duration, Instant};
 use std::{mem, thread};
 
@@ -311,7 +311,7 @@ pub fn probe_timing_thread(
                 Ok(s) => {
                     match s {
                         Signal::Run(mut current_probe_time) => {
-                            let (mut stream, conn_start_time) = hung_stream_pool.pop().unwrap();
+                            let (stream, conn_start_time) = hung_stream_pool.pop().unwrap();
                             current_probe_time += previous_probe_time;
                             previous_probe_time = current_probe_time;
                             // println!("{} {}", probe_time, previous_probe_time);
@@ -340,7 +340,8 @@ pub fn probe_timing_thread(
                                 // 两种方法都可以；
 
                                 // //  这玩意只不过写了个 宏调用 libc，做了一些封装
-                                #[cfg(target_family = "linux")]
+                                // #[cfg(target_family = "linux")]
+                                #[cfg(target_os = "linux")]
                                 match nix_setsockopt(
                                     stream.as_raw_fd(),
                                     TcpUserTimeout,
@@ -356,7 +357,7 @@ pub fn probe_timing_thread(
                                     let a = setsockopt(
                                         stream.as_raw_fd(),
                                         0x06,
-                                        0x80,
+                                        0x80, // optname: TcpUserTimeout
                                         &tcp_user_timeout as *const u32 as *const c_void,
                                         mem::size_of::<c_int>() as u32,
                                     );
