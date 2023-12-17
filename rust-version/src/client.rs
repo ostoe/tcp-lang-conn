@@ -78,7 +78,6 @@ pub fn start_client(addr_port: &str) {
         let start_time = std::time::Instant::now();
         loop {
             stream1.set_write_timeout(None);
-            stream1.set
             thread::sleep(check_interval);
             // 一个一直空着的链接，
             let check_result = check_unit(&mut stream, start_time);
