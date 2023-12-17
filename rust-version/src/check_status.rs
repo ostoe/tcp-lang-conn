@@ -9,6 +9,7 @@ pub enum CheckError{
     FIN,
     RESET,
     Readed,
+    Refused,
     ReadWriteError(std::io::Error),
     TimedOUT,
     OtherErrno(nix::errno::Errno),
@@ -22,6 +23,7 @@ impl Display for CheckError {
             CheckError::FIN=> write!(f, "FIN"),
             CheckError::RESET=> write!(f, "RESET"),
             CheckError::Readed=> write!(f, "Readed"),
+            CheckError::Refused=> write!(f, "Refused"),
             CheckError::ReadWriteError(e)=> {
                 write!(f, "ReadWriteError: {:?}", e.kind())
             },
@@ -79,12 +81,12 @@ pub struct  WrapperMessage {
 //                         println!("[{}] {:?} \x1b[40;32mhas alive\x1b[0m [EAGAIN]", thread_index, probe_time)
 //                     }
 //                     errno::Errno::ECONNRESET => { // [R]
-//                         println!("[{}]: {:?} connection \x1b[41;36mclosed [R]\x1b[0m some connection was killed!", thread_index, probe_time);
+//                         println!("[{}]: {:?} connection \x1b[41;36mclosed [R]\x1b[0m some connections were killed!", thread_index, probe_time);
 //
 //                         std::process::exit(0);
 //                     }
 //                     errno::Errno::ETIMEDOUT => {
-//                         println!("[{}]: {:?} \x1b[41;36m[TIMEOUT]\x1b[0m some connection was killed!", thread_index, probe_time);
+//                         println!("[{}]: {:?} \x1b[41;36m[TIMEOUT]\x1b[0m some connections were killed!", thread_index, probe_time);
 //                         // todo recycle probe but now exit;
 //                         std::process::exit(0);
 //

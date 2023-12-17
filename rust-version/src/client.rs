@@ -12,7 +12,7 @@ use nix::sys::socket::{recv, send, MsgFlags};
 use std::net::TcpStream;
 use std::os::raw::{c_int, c_void};
 use std::os::unix::io::AsRawFd;
-use std::str::{FromStr};
+use std::str::FromStr;
 use std::time::{Duration, Instant};
 use std::{mem, thread};
 
@@ -47,7 +47,24 @@ pub fn start_client(addr_port: &str) {
     let addr_port_move = addr_port.to_string();
     // 正常检测，只能检测linux链接自己的状态,和链路正常的状态
     thread::spawn(move || {
-        let mut stream = TcpStream::connect(addr_port_move).expect("connection failed!");
+
+        let mut stream1 = match TcpStream::connect(&addr_port_move) {
+            Ok(t) => t,
+            Err(e) => {
+                println!("[{}]: {}", "Connection failed", e.kind());
+                std::process::exit(1);
+            }
+        };
+
+
+        // let mut stream = TcpStream::connect(addr_port_move).expect("connection failed!");
+        let mut stream = match TcpStream::connect(&addr_port_move) {
+            Ok(t) => t,
+            Err(e) => {
+                println!("[{}]: {}", "Connection failed", e.kind());
+                std::process::exit(1);
+            }
+        };
         let default_addr = std::net::SocketAddr::from_str("127.0.0.0:8001").unwrap();
         let addr = stream.peer_addr().unwrap_or(default_addr);
         // stream.set_write_timeout(Some(Duration::new(5, 0)));
@@ -60,6 +77,8 @@ pub fn start_client(addr_port: &str) {
         }
         let start_time = std::time::Instant::now();
         loop {
+            stream1.set_write_timeout(None);
+            stream1.set
             thread::sleep(check_interval);
             // 一个一直空着的链接，
             let check_result = check_unit(&mut stream, start_time);
@@ -154,17 +173,20 @@ pub fn start_client(addr_port: &str) {
             }
             CheckError::RESET => {
                 // [R]
-                println!("[{}s]: {:?} connection \x1b[41;36mclosed [R]\x1b[0m some connection was killed!", probe_time, conn_elapsed_time);
+                println!("[{}s]: {:?} connection \x1b[41;36mclosed [R]\x1b[0m Some connections were reset!", probe_time, conn_elapsed_time);
                 // then do recycle probe but now exit;
             }
             CheckError::FIN => {
                 // [R] //never run....
-                println!("[{}s]: {:?} connection \x1b[41;36mclosed [FIN]\x1b[0m some connection was killed!", probe_time, conn_elapsed_time);
+                println!("[{}s]: {:?} connection \x1b[41;36mclosed [FIN]\x1b[0m Some connections were killed!", probe_time, conn_elapsed_time);
                 // then do recycle probe but now exit;
+            }
+            CheckError::Refused => {
+                println!("[{}s]: {:?} connection \x1b[41;36mclosed [Refused]\x1b[0m Remote host: Connection refused!", probe_time, conn_elapsed_time);
             }
             CheckError::TimedOUT => {
                 println!(
-                    "[{}s]: {:?} \x1b[31;40m[TIMEOUT]\x1b[0m some connection was killed!",
+                    "[{}s]: {:?} \x1b[31;40m[TIMEOUT]\x1b[0m Some connections were killed!",
                     probe_time, conn_elapsed_time
                 );
                 // then do recycle probe but now exit;
@@ -183,7 +205,6 @@ pub fn start_client(addr_port: &str) {
         ctrl_sleep_thread_exit_st.send(true).unwrap();
         // 第一轮探测探测一个范围，第二轮探测更细颗粒度（60s）的断链时长
         if stage_one {
-            println!("ffff");
             stage_one = false;
             has_probe_count = 0;
             // todo recycle probe  not exit;
@@ -258,11 +279,10 @@ pub fn sleep_timing_thread(
                     },
                     // 自己是否要终止。
                     recv(ctrl_terminal_rt) -> _ => {
-                        println!("sleep thread break");
+                        println!("Sleep thread break");
                         break;  // Err(TryRecvError::Empty) => {}
                     }
                 }
-
                 // // 醒来看看自己是否要终止。
                 // if is_be_control && ctrl_terminal_rt.is_ready() {
                 //     ctrl_terminal_rt.recv().unwrap();
@@ -271,8 +291,7 @@ pub fn sleep_timing_thread(
                 // }
             } else {
                 ctrl_terminal_rt.recv().unwrap();
-                println!("out probe time --> sleep thread exit;"); // todo
-                                                                   // std::process::exit(0);
+                println!("Out probe time --> sleep thread exit;");  // std::process::exit(0);
                 return;
             }
         }
@@ -292,7 +311,13 @@ pub fn probe_timing_thread(
     thread::spawn(move || {
         let mut hung_stream_pool: Vec<(TcpStream, Instant)> = Default::default();
         for stream_index in 1..=stream_pool_length {
-            let mut stream = TcpStream::connect(&addr_port_string).expect("connection failed!");
+            let mut stream = match TcpStream::connect(&addr_port_string) {
+                Ok(t) => t,
+                Err(e) => {
+                    println!("[{}]: {}", "Connection failed", e.kind());
+                    std::process::exit(1);
+                }
+            };
             // stream.set_write_timeout(Some(Duration::new(5, 0)));
             let (is_ok, _) = stream_rw_unit(&mut stream, false, stream_index);
             if !is_ok {
@@ -470,6 +495,16 @@ pub fn probe_timing_thread(
                                         result_probe_st
                                             .send((
                                                 CheckError::TimedOUT,
+                                                current_probe_time,
+                                                std::time::Instant::now()
+                                                    .duration_since(conn_start_time),
+                                            ))
+                                            .unwrap();
+                                    }
+                                    errno::Errno::ECONNREFUSED => {
+                                        result_probe_st
+                                            .send((
+                                                CheckError::Refused,
                                                 current_probe_time,
                                                 std::time::Instant::now()
                                                     .duration_since(conn_start_time),

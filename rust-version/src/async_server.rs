@@ -9,9 +9,14 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 pub async fn start_async_server(addr_port: &str) -> std::io::Result<()> {
     // -> Result<(), Box<dyn std::error::Error>> {
     // addr
-    let listener = tokio::net::TcpListener::bind(addr_port)
-        .await
-        .expect("bind failed!");
+
+    let listener = match tokio::net::TcpListener::bind(addr_port).await {
+        Ok(l) => l,
+        Err(e) => {
+            println!("[{}]: {}", "Bind Port Failed", e.kind());
+            std::process::exit(1);
+        }
+    };
     // let check_interval = tokio::time::interval(Duration::from_millis(300));
     let (stream_count_tx, mut stream_count_rx) = tokio::sync::mpsc::channel::<bool>(1024);
 
@@ -37,8 +42,41 @@ pub async fn start_async_server(addr_port: &str) -> std::io::Result<()> {
         }
     });
 
+    // 首个keepalive包，做通讯
+    let (mut stream1, _addr) = listener.accept().await?; 
+
+    // set keepalive
+    let sock_ref = socket2::SockRef::from(&stream1);
+    let ka = socket2::TcpKeepalive::new()
+        .with_time(Duration::from_secs(10))
+        .with_interval(Duration::from_secs(1))
+        .with_retries(7*24*360);
+    sock_ref.set_tcp_keepalive(&ka)?;
+
+    let mut buf = [0u8; 1024];
+    match stream1.read(&mut buf).await {
+        Ok(size) => {
+            if size != 0 {
+                print!("<<< {} | ", from_utf8(&buf[..size]).unwrap_or_default());
+            } 
+        }
+        Err(e) => {
+            println!("first read error:{}", e.kind());
+        }
+    }
+    match stream1.write("Server Hello".as_bytes()).await {
+        Ok(_) => {
+            println!("{} >>>", "Server Hello")
+        }
+        Err(e) => {
+            println!("first write error:{}", e.kind());
+        }
+    }
+
+
     //
     loop {
+        stream1.peer_addr();
         let (mut stream, _addr) = listener.accept().await?;
         if let Err(_) = stream_count_tx.send(true).await {
             println!("receiver dropped");

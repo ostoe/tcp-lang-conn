@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-socket2 = "0.4.4"
+socket2 = "0.5.5"
 libc = "0.2.126"
 nix = {version="0.24.1"}
 crossbeam-channel = "0.5.6"

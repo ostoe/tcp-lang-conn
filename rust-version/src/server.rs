@@ -11,7 +11,13 @@ use std::io::Write;
 
 pub fn start_server(addr_port: &str) { // -> Result<(), Box<dyn std::error::Error>> {
     // addr
-    let listener = TcpListener::bind(addr_port).expect("bind failed!");
+    let listener = match TcpListener::bind(addr_port) {
+        Ok(l) => l,
+        Err(e) => {
+            println!("[{}]: {}", "Bind Port Failed", e.kind());
+            std::process::exit(1);
+        }
+    };
     println!("Listener started");
     let check_interval = Duration::from_millis(100);
     let (st, rt) = unbounded::<bool>();
