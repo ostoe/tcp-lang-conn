@@ -28,15 +28,15 @@ pub fn start_client(addr_port: &str) {
     // 起多个线程，做线程序列，[ 5min 10min 15m 30m 1h 2h 4h 8h 12h 18h 24h 28h 36h]
     // 如果正常断开，比如15分钟，那么在某一时间段，30m 1h 2h 4h 8h 12h 18h 24h 28h 36h] 这些连接都能收到reset包正常断开。
     // 如果不能正常，就按照时间序列探测。
-    let mut threads_lists = [0u32; 4096];
-    let threads_lists_part1 = [15u32, 30, 5 * 60, 10 * 60];
+    let mut probe_time_list = [0u32; 4096];
+    let probe_time_list_prefix = [15u32, 30, 60, 120, 180, 240, 5 * 60, 10 * 60];
     // todo
-    for x in 0..threads_lists_part1.len() {
-        threads_lists[x] = threads_lists_part1[x];
+    for x in 0..probe_time_list_prefix.len() {
+        probe_time_list[x] = probe_time_list_prefix[x];
     }
-    let summary_time = 36usize;
-    for x in 0..summary_time {
-        threads_lists[x + threads_lists_part1.len()] = ((x + 1) as u32) * 3600;
+    let suffix_time = 36usize;
+    for x in 0..suffix_time {
+        probe_time_list[x + probe_time_list_prefix.len()] = ((x + 1) as u32) * 3600;
     }
     // println!("{:?}", threads_lists);
     // let threads_lists = [15, 5u32*60, 10*60, 15*60, 30*60, 1*3600, 2*3600, 3*3600, 4*3600, 5*3600, 6*3600, 7*3600, 8* 3600,
@@ -47,7 +47,6 @@ pub fn start_client(addr_port: &str) {
     let addr_port_move = addr_port.to_string();
     // 正常检测，只能检测linux链接自己的状态,和链路正常的状态
     thread::spawn(move || {
-
         let mut stream1 = match TcpStream::connect(&addr_port_move) {
             Ok(t) => t,
             Err(e) => {
@@ -55,7 +54,6 @@ pub fn start_client(addr_port: &str) {
                 std::process::exit(1);
             }
         };
-
 
         // let mut stream = TcpStream::connect(addr_port_move).expect("connection failed!");
         let mut stream = match TcpStream::connect(&addr_port_move) {
@@ -131,7 +129,7 @@ pub fn start_client(addr_port: &str) {
         addr_port,
         ctrl_probe_rt_clone,
         result_probe_st_clone,
-        threads_lists_part1.len() + summary_time,
+        probe_time_list_prefix.len() + suffix_time,
     );
 
     // 定时，到时间以后通知
@@ -139,10 +137,10 @@ pub fn start_client(addr_port: &str) {
     let ctrl_probe_st_clone = ctrl_probe_st.clone();
     // ------------------------ sleep thread，过一段时间发一个消息给探测线程，让探测线程发过去
     sleep_timing_thread(
-        threads_lists,
+        probe_time_list,
         ctrl_sleep_rt_clone,
         ctrl_probe_st_clone,
-        threads_lists_part1.len() + summary_time,
+        probe_time_list_prefix.len() + suffix_time,
         true,
     );
     // 起一个沉睡线程////
@@ -150,7 +148,7 @@ pub fn start_client(addr_port: &str) {
     // let _ = ticker.recv();
 
     let mut has_probe_count = 0usize;
-    let mut threads_lists_length = threads_lists_part1.len() + summary_time;
+    let mut probe_time_list_length = probe_time_list_prefix.len() + suffix_time;
     let mut stage_one = true;
     loop {
         let probe_result = result_probe_rt.recv();
@@ -163,7 +161,7 @@ pub fn start_client(addr_port: &str) {
                     probe_time, conn_elapsed_time
                 );
                 has_probe_count += 1;
-                if has_probe_count >= threads_lists_length {
+                if has_probe_count >= probe_time_list_length {
                     ctrl_sleep_thread_exit_st.send(true).unwrap();
                     println!("out probe time, the connection still alive. maybe never initiative disconnect."); // todo
                     std::process::exit(0);
@@ -206,41 +204,44 @@ pub fn start_client(addr_port: &str) {
         if stage_one {
             stage_one = false;
             has_probe_count = 0;
-            // todo recycle probe  not exit;
-            let index_element = threads_lists.iter().position(|&x| x == probe_time).unwrap();
-            // let (mut a_time, mut b_time) = (0u32, 0u32);
-            if index_element == 0 {
-                println!("1 min 内断开");
+            if probe_time <= 60 {
+                println!("Disconnect within\x1b[41;36mone minute\x1b  without performing a second round of detection");
                 std::process::exit(0);
-            } else {
-                let a_time: u32 = threads_lists[index_element - 1];
-                let b_time: u32 = threads_lists[index_element];
-                // send 第二轮探测
-                let mut threads_lists: [u32; 4096] = [0; 4096];
-                threads_lists_length = ((b_time - a_time) / 60 + 1) as usize;
-                for x in 0..threads_lists_length {
-                    threads_lists[x] = a_time + 60 * (x as u32);
-                }
-                println!("index_element: {} {} {} ", index_element, a_time, b_time,);
-                let ctrl_probe_rt_clone = ctrl_probe_rt.clone();
-                let probe_st_clone = result_probe_st.clone();
-                probe_timing_thread(
-                    addr_port,
-                    ctrl_probe_rt_clone,
-                    probe_st_clone,
-                    threads_lists_length,
-                );
-                let ctrl_sleep_rt_clone = ctrl_sleep_rt.clone();
-                let ctrl_probe_st_clone = ctrl_probe_st.clone();
-                sleep_timing_thread(
-                    threads_lists,
-                    ctrl_sleep_rt_clone,
-                    ctrl_probe_st_clone,
-                    threads_lists_length,
-                    false,
-                );
-                println!("send 第二轮探测");
             }
+            // todo recycle probe  not exit;
+            let index_element = probe_time_list
+                .iter()
+                .position(|&x| x == probe_time)
+                .unwrap();
+            // let (mut a_time, mut b_time) = (0u32, 0u32);
+
+            let a_time: u32 = probe_time_list[index_element - 1];
+            let b_time: u32 = probe_time_list[index_element];
+            // send 第二轮探测
+            let mut probe_time_list: [u32; 4096] = [0; 4096];
+            probe_time_list_length = ((b_time - a_time) / 15 + 1) as usize;
+            for x in 0..probe_time_list_length {
+                probe_time_list[x] = a_time + 15 * (x as u32);
+            }
+            println!("index_element: {} {} {} ", index_element, a_time, b_time,);
+            let ctrl_probe_rt_clone = ctrl_probe_rt.clone();
+            let probe_st_clone = result_probe_st.clone();
+            probe_timing_thread(
+                addr_port,
+                ctrl_probe_rt_clone,
+                probe_st_clone,
+                probe_time_list_length,
+            );
+            let ctrl_sleep_rt_clone = ctrl_sleep_rt.clone();
+            let ctrl_probe_st_clone = ctrl_probe_st.clone();
+            sleep_timing_thread(
+                probe_time_list,
+                ctrl_sleep_rt_clone,
+                ctrl_probe_st_clone,
+                probe_time_list_length,
+                false,
+            );
+            println!("Round two.");
         } else {
             std::process::exit(0);
         }
@@ -290,7 +291,7 @@ pub fn sleep_timing_thread(
                 // }
             } else {
                 ctrl_terminal_rt.recv().unwrap();
-                println!("Out probe time --> sleep thread exit;");  // std::process::exit(0);
+                println!("Out probe time --> sleep thread exit;"); // std::process::exit(0);
                 return;
             }
         }
@@ -438,7 +439,7 @@ pub fn probe_timing_thread(
                             // 似乎linux不发送reset--
 
                             let mut peek_buf = [0u8; 1];
-                            // Upon successful completion, recv() shall return the length of the message in bytes. 
+                            // Upon successful completion, recv() shall return the length of the message in bytes.
                             // If no messages are available to be received and the peer has performed an orderly shutdown,
                             // recv() shall return 0. Otherwise, -1 shall be returned and errno set to indicate the error.
                             match recv(
@@ -466,7 +467,6 @@ pub fn probe_timing_thread(
                                         //          println!("first read error:{}", e.kind());
                                         //     }
                                         // }
-
                                     }
                                 }
                                 Err(e) => match e {
