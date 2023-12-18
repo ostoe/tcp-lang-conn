@@ -1,5 +1,6 @@
 use crate::async_check_unit;
 use crate::check_status::CheckError;
+use std::os::fd::AsFd;
 use std::str::{ from_utf8, FromStr};
 use std::time::Duration;
 
@@ -47,12 +48,13 @@ pub async fn start_async_server(addr_port: &str) -> std::io::Result<()> {
 
     // set keepalive
     let sock_ref = socket2::SockRef::from(&stream1);
-    let ka = socket2::TcpKeepalive::new()
-        .with_time(Duration::from_secs(10))
-        .with_interval(Duration::from_secs(1))
-        .with_retries(7*24*360);
+    let ka: socket2::TcpKeepalive = socket2::TcpKeepalive::new()
+    // [#cfg!([target_os="unix"])]
+        .with_time(Duration::from_secs(10)) // KEEPALIVE_TIME
+        .with_interval(Duration::from_secs(1)) // TCP_KEEPINTVL
+        .with_retries(3600); // TCP_KEEPCNT
     sock_ref.set_tcp_keepalive(&ka).unwrap();
-
+    
     let mut buf = [0u8; 1024];
     match stream1.read(&mut buf).await {
         Ok(size) => {
