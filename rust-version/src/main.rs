@@ -61,7 +61,7 @@ fn main() {
                         .block_on(async {
                             let err = tcp_lang_conn::async_server::start_async_server(args[2].as_str()).await;
                             match err {
-                                Err(e) => {println!("Main Err: {}", e.kind())}
+                                Err(e) => {panic!("Main Err: {}", e)}
                                 _ => {}
                             }
                         })
