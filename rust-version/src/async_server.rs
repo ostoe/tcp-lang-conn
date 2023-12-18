@@ -66,7 +66,8 @@ pub async fn start_async_server(addr_port: &str) -> std::io::Result<()> {
     }
     match stream1.write("Server Hello".as_bytes()).await {
         Ok(_) => {
-            println!("{} >>>", "Server Hello")
+            println!("{} >>>", "Server Hello");
+            stream_count_tx.send(true).await;
         }
         Err(e) => {
             println!("first write error:{}", e.kind());
