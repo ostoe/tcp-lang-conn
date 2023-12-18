@@ -40,7 +40,7 @@ fn main() {
         1..=2 => {
             // todo
             println!(
-                "Usage: ./connTest [s|c] [ip_address:port]\n{}\n{}\n{}\n{}",
+                "Usage: ./tcp-lang-conn-test [s|c] [ip_address:port]\n{}\n{}\n{}\n{}",
                 "Example: ",
                 "1. Server(192.168.1.1) start:    ./connTest s 0.0.0.0:8001",
                 "2. Client(192.168.1.2) start:    ./connTest c 192.168.1.1:8001",
@@ -59,7 +59,11 @@ fn main() {
                         .build()
                         .unwrap()
                         .block_on(async {
-                            let _ = tcp_lang_conn::async_server::start_async_server(args[2].as_str()).await;
+                            let err = tcp_lang_conn::async_server::start_async_server(args[2].as_str()).await;
+                            match err {
+                                Err(e) => {panic!("Main Err: {}", e)}
+                                _ => {}
+                            }
                         })
                 }
                 "c" | "C" => {

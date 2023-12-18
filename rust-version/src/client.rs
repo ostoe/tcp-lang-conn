@@ -47,13 +47,15 @@ pub fn start_client(addr_port: &str) {
     let addr_port_move = addr_port.to_string();
     // 正常检测，只能检测linux链接自己的状态,和链路正常的状态
     thread::spawn(move || {
-        let mut stream1 = match TcpStream::connect(&addr_port_move) {
-            Ok(t) => t,
-            Err(e) => {
-                println!("[{}]: {}", "Connection failed", e.kind());
-                std::process::exit(1);
-            }
-        };
+
+        // let stream1 = match TcpStream::connect(&addr_port_move) {
+        //     Ok(t) => t,
+        //     Err(e) => {
+        //         println!("[{}]: {}", "Connection failed", e.kind());
+        //         std::process::exit(1);
+        //     }
+        // };
+
 
         // let mut stream = TcpStream::connect(addr_port_move).expect("connection failed!");
         let mut stream = match TcpStream::connect(&addr_port_move) {
@@ -75,7 +77,7 @@ pub fn start_client(addr_port: &str) {
         }
         let start_time = std::time::Instant::now();
         loop {
-            stream1.set_write_timeout(None);
+            // stream1.set_write_timeout(None);
             thread::sleep(check_interval);
             // 一个一直空着的链接，
             let check_result = check_unit(&mut stream, start_time);
@@ -379,6 +381,7 @@ pub fn probe_timing_thread(
                                 }
                             } else if cfg!(target_os = "macos") {
                                 unsafe {
+                                    
                                     let a = setsockopt(
                                         stream.as_raw_fd(),
                                         0x06,
