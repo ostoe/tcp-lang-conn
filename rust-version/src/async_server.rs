@@ -51,7 +51,7 @@ pub async fn start_async_server(addr_port: &str) -> std::io::Result<()> {
         .with_time(Duration::from_secs(10))
         .with_interval(Duration::from_secs(1))
         .with_retries(7*24*360);
-    sock_ref.set_tcp_keepalive(&ka)?;
+    sock_ref.set_tcp_keepalive(&ka).unwrap();
 
     let mut buf = [0u8; 1024];
     match stream1.read(&mut buf).await {
