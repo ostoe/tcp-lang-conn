@@ -85,7 +85,7 @@ pub fn start_client(addr_port: &str) {
             match check_result.check_error {
                 CheckError::FIN => {
                     println!(
-                        "[H.FIN] {} connection duration time: {:?}-------",
+                        "[H.FIN] {} connection duration time: {:?}",
                         addr,
                         check_result.probe_time.unwrap_or(Default::default())
                     );
@@ -94,8 +94,8 @@ pub fn start_client(addr_port: &str) {
                 }
                 CheckError::RESET => {
                     println!(
-                        "[H.RESET] {} connection duration time: {:?}-------",
-                        "miss addr",
+                        "[H.RESET] {} connection duration time: {:?}",
+                        addr,
                         check_result.probe_time.unwrap_or(Default::default())
                     );
                     drop(stream);
@@ -159,7 +159,7 @@ pub fn start_client(addr_port: &str) {
         match e {
             CheckError::EAGAIN => {
                 println!(
-                    "[{}s] {:?} \x1b[40;32mhas alive\x1b[0m [EAGAIN]",
+                    "[{}s] {:?} \x1b[40;32m● Active\x1b[0m [EAGAIN]",
                     probe_time, conn_elapsed_time
                 );
                 has_probe_count += 1;
@@ -172,20 +172,20 @@ pub fn start_client(addr_port: &str) {
             }
             CheckError::RESET => {
                 // [R]
-                println!("[{}s]: {:?} connection \x1b[41;36mclosed [R]\x1b[0m Some connections were reset!", probe_time, conn_elapsed_time);
+                println!("[{}s]: {:?} connection \x1b[41;36m●closed [R]\x1b[0m Some connections were reset!", probe_time, conn_elapsed_time);
                 // then do recycle probe but now exit;
             }
             CheckError::FIN => {
                 // [R] //never run....
-                println!("[{}s]: {:?} connection \x1b[41;36mclosed [FIN]\x1b[0m Some connections were killed!", probe_time, conn_elapsed_time);
+                println!("[{}s]: {:?} connection \x1b[41;36m● closed [FIN]\x1b[0m Some connections were killed!", probe_time, conn_elapsed_time);
                 // then do recycle probe but now exit;
             }
             CheckError::Refused => {
-                println!("[{}s]: {:?} connection \x1b[41;36mclosed [Refused]\x1b[0m Remote host: Connection refused!", probe_time, conn_elapsed_time);
+                println!("[{}s]: {:?} connection \x1b[41;36m● closed [Refused]\x1b[0m Remote host: Connection refused!", probe_time, conn_elapsed_time);
             }
             CheckError::TimedOUT => {
                 println!(
-                    "[{}s]: {:?} \x1b[31;40m[TIMEOUT]\x1b[0m Some connections were killed!",
+                    "[{}s]: {:?} \x1b[31;40m● [TIMEOUT]\x1b[0m Some connections were killed!",
                     probe_time, conn_elapsed_time
                 );
                 // then do recycle probe but now exit;
@@ -207,7 +207,7 @@ pub fn start_client(addr_port: &str) {
             stage_one = false;
             has_probe_count = 0;
             if probe_time <= 60 {
-                println!("Disconnect within\x1b[41;36mone minute\x1b  without performing a second round of detection");
+                println!("Disconnect within\x1b[41;36m● one minute\x1b  without performing a second round of detection");
                 std::process::exit(0);
             }
             // todo recycle probe  not exit;
@@ -343,7 +343,7 @@ pub fn probe_timing_thread(
                             previous_probe_time = current_probe_time;
                             // println!("{} {}", probe_time, previous_probe_time);
                             let write_content = "Ping";
-                            println!("[{}]------will probe------", stream_index);
+                            print!("[{}]----will probe----", stream_index);
                             stream.set_write_timeout(Some(Duration::new(1, 0))).unwrap(); // 无效参数，仅仅针对本地写到缓存，而不是完整的链路
                                                                                           // 根据平台区分
 
@@ -405,9 +405,9 @@ pub fn probe_timing_thread(
                             ) {
                                 Ok(size) => {
                                     if size == 0 {
-                                        println!("send --> closed[FIN]")
+                                        print!("send --> closed[FIN]")
                                     } else {
-                                        println!("send --> size: {}", size);
+                                        print!("send --> size: {}", size);
                                     }
                                 }
                                 Err(e) => {
@@ -432,7 +432,7 @@ pub fn probe_timing_thread(
                                 }
                             }
 
-                            println!("[{}]-----check conn after probe----", stream_index);
+                            println!("----check conn after 3s---");
 
                             thread::sleep(Duration::from_secs(3));
                             // 如果检测时，tcp还在重试，则此处的错误为：EAGAIN！！！所以一定要确保检测时，已经重试完毕。
