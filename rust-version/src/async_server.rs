@@ -67,7 +67,11 @@ pub async fn start_async_server(addr_port: &str) -> std::io::Result<()> {
                     if size != 0 {
                         print!("<<< {} | ", from_utf8(&buf[..size]).unwrap_or_default());
                     } else {
-                        println!("read closed. reached EOF, maybe[FIN]");
+                        if let Err(_) = stream_count_tx_c.send(true).await {
+                            println!("receiver dropped");
+                            // return Ok(());
+                        }
+                        println!("first read closed. reached EOF. [FIN/RESET]");
                         return;
                     }
                 }
