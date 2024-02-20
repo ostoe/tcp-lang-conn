@@ -207,7 +207,7 @@ pub fn start_client(addr_port: &str) {
             stage_one = false;
             has_probe_count = 0;
             if probe_time <= 60 {
-                println!("Disconnect within\x1b[41;36m● one minute\x1b  without performing a second round of detection");
+                println!("Disconnect within\x1b[41;36m● one minute\x1b[0m without performing a second round of detection");
                 std::process::exit(0);
             }
             // todo recycle probe  not exit;

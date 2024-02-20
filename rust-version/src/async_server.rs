@@ -1,7 +1,7 @@
 use crate::async_check_unit;
 use crate::check_status::CheckError;
 use socket2::{SockRef, TcpKeepalive};
-use std::net::TcpListener;
+// use std::net::TcpListener;
 use std::os::fd::{AsFd, AsRawFd};
 use std::str::{from_utf8, FromStr};
 use std::time::Duration;
