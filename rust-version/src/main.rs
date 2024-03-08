@@ -44,7 +44,7 @@ fn main() {
                 "Example: ",
                 "1. Server(192.168.1.1) start:    ./connTest s 0.0.0.0:8001",
                 "2. Client(192.168.1.2) start:    ./connTest c 192.168.1.1:8001",
-                "version 2023-12-12"
+                "version 2024-02-26"
             );
         }
         3 => {

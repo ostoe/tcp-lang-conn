@@ -1,12 +1,13 @@
 use crate::async_check_unit;
 use crate::check_status::CheckError;
 use socket2::{SockRef, TcpKeepalive};
+use std::default;
 // use std::net::TcpListener;
 use std::os::fd::{AsFd, AsRawFd};
 use std::str::{from_utf8, FromStr};
 use std::time::Duration;
 
-use std::io::Write;
+use std::io::{ErrorKind, Write};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 pub async fn start_async_server(addr_port: &str) -> std::io::Result<()> {
@@ -76,7 +77,14 @@ pub async fn start_async_server(addr_port: &str) -> std::io::Result<()> {
                     }
                 }
                 Err(e) => {
-                    println!("first read error:{}", e.kind());
+                    stream_count_tx_c.send(false).await.unwrap();
+                    match e.kind() {
+                        ErrorKind::ConnectionReset => {
+                            println!("[Reset] first read error.");
+                        }
+                        ErrorKind::TimedOut => println!("[TimedOut] first read error."),
+                        _ => println!("first read error:{}", e.kind()),
+                    }
                     return;
                 }
             }
